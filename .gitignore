@@ -1,0 +1,15 @@
+.venv/
+venv/
+
+.DS_Store
+
+_pycache_/
+*.py[cod]
+*.so
+
+*.log
+*.tmp
+
+.ipynb_checkpoints/
+
+pip-wheel-metadata/
