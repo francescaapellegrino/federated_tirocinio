@@ -13,3 +13,5 @@ _pycache_/
 .ipynb_checkpoints/
 
 pip-wheel-metadata/
+.DS_Store
+.idea/
