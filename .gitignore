@@ -1,6 +1,7 @@
 .venv/
 venv/
 
+federated/MNIST/venv310/
 .DS_Store
 
 _pycache_/
