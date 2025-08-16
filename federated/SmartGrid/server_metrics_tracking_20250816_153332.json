@@ -1,0 +1,111 @@
+{
+  "experiment_info": {
+    "total_rounds": 10,
+    "start_time": "2025-08-16T15:33:32.930622",
+    "end_time": "2025-08-16T15:33:32.931050",
+    "total_duration": 0.00043010711669921875,
+    "avg_round_time": 1.6689300537109375e-05
+  },
+  "rounds_data": [
+    {
+      "round": 1,
+      "timestamp": "2025-08-16T15:33:32.930694",
+      "elapsed_time": 8.034706115722656e-05,
+      "total_clients": 2,
+      "total_samples": 1800,
+      "avg_weighted_train_accuracy": 0.8733333333333333,
+      "avg_weighted_val_accuracy": 0.8433333333333334,
+      "train_val_gap": 0.03,
+      "client_metrics": [
+        {
+          "client_id": 1,
+          "samples": 1000,
+          "train_accuracy": 0.86,
+          "val_accuracy": 0.83,
+          "train_loss": 0.29,
+          "val_loss": 0.33999999999999997,
+          "overfitting_score": 0.03
+        },
+        {
+          "client_id": 2,
+          "samples": 800,
+          "train_accuracy": 0.89,
+          "val_accuracy": 0.86,
+          "train_loss": 0.24,
+          "val_loss": 0.27,
+          "overfitting_score": 0.03
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "timestamp": "2025-08-16T15:33:32.930748",
+      "elapsed_time": 0.00013017654418945312,
+      "total_clients": 2,
+      "total_samples": 1800,
+      "avg_weighted_train_accuracy": 0.9133333333333333,
+      "avg_weighted_val_accuracy": 0.8833333333333333,
+      "train_val_gap": 0.03,
+      "client_metrics": [
+        {
+          "client_id": 1,
+          "samples": 1000,
+          "train_accuracy": 0.9,
+          "val_accuracy": 0.87,
+          "train_loss": 0.25,
+          "val_loss": 0.3,
+          "overfitting_score": 0.03
+        },
+        {
+          "client_id": 2,
+          "samples": 800,
+          "train_accuracy": 0.93,
+          "val_accuracy": 0.9,
+          "train_loss": 0.2,
+          "val_loss": 0.23000000000000004,
+          "overfitting_score": 0.03
+        }
+      ]
+    },
+    {
+      "round": 10,
+      "timestamp": "2025-08-16T15:33:32.930789",
+      "elapsed_time": 0.00017023086547851562,
+      "total_clients": 2,
+      "total_samples": 1800,
+      "avg_weighted_train_accuracy": 0.9633333333333334,
+      "avg_weighted_val_accuracy": 0.9333333333333333,
+      "train_val_gap": 0.03,
+      "client_metrics": [
+        {
+          "client_id": 1,
+          "samples": 1000,
+          "train_accuracy": 0.95,
+          "val_accuracy": 0.9199999999999999,
+          "train_loss": 0.19999999999999998,
+          "val_loss": 0.24999999999999997,
+          "overfitting_score": 0.03
+        },
+        {
+          "client_id": 2,
+          "samples": 800,
+          "train_accuracy": 0.98,
+          "val_accuracy": 0.95,
+          "train_loss": 0.15,
+          "val_loss": 0.18000000000000002,
+          "overfitting_score": 0.03
+        }
+      ]
+    }
+  ],
+  "performance_summary": {
+    "initial_train_accuracy": 0.8733333333333333,
+    "final_train_accuracy": 0.9633333333333334,
+    "train_improvement": 0.09000000000000008,
+    "initial_val_accuracy": 0.8433333333333334,
+    "final_val_accuracy": 0.9333333333333333,
+    "val_improvement": 0.08999999999999997,
+    "final_train_val_gap": 0.03,
+    "convergence_achieved": false
+  }
+}
