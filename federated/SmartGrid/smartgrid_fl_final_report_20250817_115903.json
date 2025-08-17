@@ -1,0 +1,365 @@
+{
+  "metadata": {
+    "experiment_name": "SmartGrid Federated Learning - Robust Training",
+    "user": "francescaapellegrino",
+    "start_time": "2025-08-17T11:57:52.124320",
+    "end_time": "2025-08-17T11:59:03.331025",
+    "total_duration_minutes": 1.1867784333333333,
+    "total_rounds": 11,
+    "epochs_per_round": 5,
+    "total_epochs_per_client": 55,
+    "training_completed": true
+  },
+  "final_statistics": {
+    "accuracy": {
+      "initial_value": 0.402079,
+      "final_value": 0.686941,
+      "best_value": 0.687711,
+      "worst_value": 0.402079,
+      "improvement_absolute": 0.284862,
+      "improvement_relative_percent": 70.85,
+      "mean_value": 0.658446,
+      "std_value": 0.081295,
+      "trend_coefficient": 0.01380565
+    },
+    "loss": {
+      "initial_value": 1138.384521,
+      "final_value": 19.422071,
+      "best_value": 19.422071,
+      "worst_value": 1138.384521,
+      "improvement_absolute": -1118.96245,
+      "improvement_relative_percent": -98.29,
+      "mean_value": 127.766196,
+      "std_value": 319.611521,
+      "trend_coefficient": -51.5037461
+    },
+    "f1_score": {
+      "initial_value": 0.807123,
+      "final_value": 0.8171,
+      "best_value": 0.8171,
+      "worst_value": 0.807123,
+      "improvement_absolute": 0.009978,
+      "improvement_relative_percent": 1.24,
+      "mean_value": 0.815803,
+      "std_value": 0.002957,
+      "trend_coefficient": 0.00060019
+    },
+    "auc_roc": {
+      "initial_value": 0.493377,
+      "final_value": 0.519954,
+      "best_value": 0.526076,
+      "worst_value": 0.493377,
+      "improvement_absolute": 0.026577,
+      "improvement_relative_percent": 5.39,
+      "mean_value": 0.517523,
+      "std_value": 0.008484,
+      "trend_coefficient": 0.00183475
+    }
+  },
+  "convergence_analysis": {
+    "accuracy": {
+      "stable": "True",
+      "improving": "True",
+      "coefficient_variation": 0.000904,
+      "trend_coefficient": -0.00023097,
+      "recent_mean": 0.686748,
+      "recent_std": 0.000621
+    },
+    "loss": {
+      "stable": "False",
+      "improving": "True",
+      "coefficient_variation": 0.112401,
+      "trend_coefficient": -1.47500706,
+      "recent_mean": 23.385802,
+      "recent_std": 2.628589
+    },
+    "f1_score": {
+      "stable": "True",
+      "improving": "True",
+      "coefficient_variation": 3.3e-05,
+      "trend_coefficient": 1.348e-05,
+      "recent_mean": 0.817087,
+      "recent_std": 2.7e-05
+    },
+    "auc_roc": {
+      "stable": "True",
+      "improving": "True",
+      "coefficient_variation": 0.003925,
+      "trend_coefficient": -0.00099316,
+      "recent_mean": 0.522686,
+      "recent_std": 0.002052
+    },
+    "overall_assessment": {
+      "stable_metrics_count": 3,
+      "total_metrics_count": 4,
+      "overall_stability_ratio": 0.75,
+      "system_converged": false
+    }
+  },
+  "system_readiness": {
+    "ready_for_vulnerability_assessment": false,
+    "criteria_assessment": {
+      "sufficient_rounds": {
+        "passed": true,
+        "current": 11,
+        "required": 8
+      },
+      "sufficient_accuracy": {
+        "passed": false,
+        "current": 0.6869,
+        "required": 0.7
+      },
+      "sufficient_f1_score": {
+        "passed": true,
+        "current": 0.8171,
+        "required": 0.7
+      },
+      "client_readiness": {
+        "passed": false,
+        "ratio": 0,
+        "ready_clients": 0,
+        "total_clients": 0
+      }
+    },
+    "recommendations": [
+      "Migliorare accuracy globale (considerare tuning iperparametri)",
+      "Aumentare stabilit\u00e0 training sui client"
+    ]
+  },
+  "rounds_summary": [
+    {
+      "round": 0,
+      "timestamp": "2025-08-17T11:57:52.659353",
+      "global_metrics": {
+        "accuracy": 0.4020787179470062,
+        "loss": 1138.384521484375,
+        "f1_score": 0.8071225881576538,
+        "auc_roc": 0.4933770621234482,
+        "precision": 0.68313068151474,
+        "recall": 0.2505224943161011
+      },
+      "num_clients": 0,
+      "client_metrics": []
+    },
+    {
+      "round": 1,
+      "timestamp": "2025-08-17T11:58:46.786856",
+      "global_metrics": {
+        "accuracy": 0.6654797196388245,
+        "loss": 29.622089385986328,
+        "f1_score": 0.813218355178833,
+        "auc_roc": 0.5189778174575683,
+        "precision": 0.6931426525115967,
+        "recall": 0.9253169894218445
+      },
+      "num_clients": 0,
+      "client_metrics": []
+    },
+    {
+      "round": 2,
+      "timestamp": "2025-08-17T11:58:50.842427",
+      "global_metrics": {
+        "accuracy": 0.6827061772346497,
+        "loss": 33.91486740112305,
+        "f1_score": 0.8169125318527222,
+        "auc_roc": 0.5135173039021579,
+        "precision": 0.690382719039917,
+        "recall": 0.9802145957946777
+      },
+      "num_clients": 0,
+      "client_metrics": []
+    },
+    {
+      "round": 3,
+      "timestamp": "2025-08-17T11:58:52.428511",
+      "global_metrics": {
+        "accuracy": 0.686651885509491,
+        "loss": 31.782085418701172,
+        "f1_score": 0.8170793652534485,
+        "auc_roc": 0.5131218667736483,
+        "precision": 0.6913242936134338,
+        "recall": 0.9870419502258301
+      },
+      "num_clients": 0,
+      "client_metrics": []
+    },
+    {
+      "round": 4,
+      "timestamp": "2025-08-17T11:58:53.974752",
+      "global_metrics": {
+        "accuracy": 0.6865556836128235,
+        "loss": 25.729293823242188,
+        "f1_score": 0.8170328140258789,
+        "auc_roc": 0.518945520065611,
+        "precision": 0.6913315057754517,
+        "recall": 0.9867632985115051
+      },
+      "num_clients": 0,
+      "client_metrics": []
+    },
+    {
+      "round": 5,
+      "timestamp": "2025-08-17T11:58:55.503197",
+      "global_metrics": {
+        "accuracy": 0.6856895685195923,
+        "loss": 29.0662841796875,
+        "f1_score": 0.8170328140258789,
+        "auc_roc": 0.5213829977338069,
+        "precision": 0.6907246708869934,
+        "recall": 0.9867632985115051
+      },
+      "num_clients": 0,
+      "client_metrics": []
+    },
+    {
+      "round": 6,
+      "timestamp": "2025-08-17T11:58:57.157639",
+      "global_metrics": {
+        "accuracy": 0.6877105236053467,
+        "loss": 27.237281799316406,
+        "f1_score": 0.8170328140258789,
+        "auc_roc": 0.5225937380862724,
+        "precision": 0.6910964250564575,
+        "recall": 0.9906646013259888
+      },
+      "num_clients": 0,
+      "client_metrics": []
+    },
+    {
+      "round": 7,
+      "timestamp": "2025-08-17T11:58:58.727780",
+      "global_metrics": {
+        "accuracy": 0.6865556836128235,
+        "loss": 23.7587833404541,
+        "f1_score": 0.8171002268791199,
+        "auc_roc": 0.5260764373921776,
+        "precision": 0.6900697946548462,
+        "recall": 0.9915006160736084
+      },
+      "num_clients": 0,
+      "client_metrics": []
+    },
+    {
+      "round": 8,
+      "timestamp": "2025-08-17T11:59:00.323331",
+      "global_metrics": {
+        "accuracy": 0.6867481470108032,
+        "loss": 21.871740341186523,
+        "f1_score": 0.8171002268791199,
+        "auc_roc": 0.5233820979154613,
+        "precision": 0.6901299357414246,
+        "recall": 0.9917792677879333
+      },
+      "num_clients": 0,
+      "client_metrics": []
+    },
+    {
+      "round": 9,
+      "timestamp": "2025-08-17T11:59:01.857499",
+      "global_metrics": {
+        "accuracy": 0.6857857704162598,
+        "loss": 24.63913345336914,
+        "f1_score": 0.8171002268791199,
+        "auc_roc": 0.521424334060292,
+        "precision": 0.6898660659790039,
+        "recall": 0.990246593952179
+      },
+      "num_clients": 0,
+      "client_metrics": []
+    },
+    {
+      "round": 10,
+      "timestamp": "2025-08-17T11:59:03.330488",
+      "global_metrics": {
+        "accuracy": 0.686940610408783,
+        "loss": 19.42207145690918,
+        "f1_score": 0.8171002268791199,
+        "auc_roc": 0.5199540007104559,
+        "precision": 0.6900426149368286,
+        "recall": 0.992615282535553
+      },
+      "num_clients": 0,
+      "client_metrics": []
+    }
+  ],
+  "global_metrics_evolution": {
+    "accuracy": [
+      0.4020787179470062,
+      0.6654797196388245,
+      0.6827061772346497,
+      0.686651885509491,
+      0.6865556836128235,
+      0.6856895685195923,
+      0.6877105236053467,
+      0.6865556836128235,
+      0.6867481470108032,
+      0.6857857704162598,
+      0.686940610408783
+    ],
+    "loss": [
+      1138.384521484375,
+      29.622089385986328,
+      33.91486740112305,
+      31.782085418701172,
+      25.729293823242188,
+      29.0662841796875,
+      27.237281799316406,
+      23.7587833404541,
+      21.871740341186523,
+      24.63913345336914,
+      19.42207145690918
+    ],
+    "f1_score": [
+      0.8071225881576538,
+      0.813218355178833,
+      0.8169125318527222,
+      0.8170793652534485,
+      0.8170328140258789,
+      0.8170328140258789,
+      0.8170328140258789,
+      0.8171002268791199,
+      0.8171002268791199,
+      0.8171002268791199,
+      0.8171002268791199
+    ],
+    "auc_roc": [
+      0.4933770621234482,
+      0.5189778174575683,
+      0.5135173039021579,
+      0.5131218667736483,
+      0.518945520065611,
+      0.5213829977338069,
+      0.5225937380862724,
+      0.5260764373921776,
+      0.5233820979154613,
+      0.521424334060292,
+      0.5199540007104559
+    ]
+  },
+  "detailed_analysis": {
+    "learning_curve_analysis": {
+      "initial_accuracy": 0.4021,
+      "final_accuracy": 0.6869,
+      "peak_accuracy": 0.6877,
+      "accuracy_improvement_percent": 70.85,
+      "learning_efficiency": 0.0624
+    },
+    "loss_reduction_analysis": {
+      "initial_loss": 1138.3845,
+      "final_loss": 19.4221,
+      "minimum_loss": 19.4221,
+      "loss_reduction_percent": 98.29
+    },
+    "f1_score_analysis": {
+      "initial_f1": 0.8071,
+      "final_f1": 0.8171,
+      "peak_f1": 0.8171,
+      "f1_improvement_percent": 1.24
+    },
+    "training_insights": {
+      "overfitting_risk": "Low",
+      "convergence_speed": "Moderate",
+      "stability_assessment": "Stable"
+    }
+  }
+}
