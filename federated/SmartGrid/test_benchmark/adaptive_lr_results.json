@@ -1,0 +1,59 @@
+{
+  "config_name": "Adaptive Learning",
+  "strategy": "adaptive",
+  "client_type": "adaptive",
+  "round_metrics": [
+    {
+      "round": 1,
+      "val_accuracy": 0.7253126347563605,
+      "val_f1_score": 0.8407101775443862,
+      "val_auc": 0.6078581565309498,
+      "participating_clients": 3,
+      "round_duration": 5.71442723274231,
+      "client_variance": 0.001188782863307678
+    },
+    {
+      "round": 2,
+      "val_accuracy": 0.7235877533419578,
+      "val_f1_score": 0.8390660306301783,
+      "val_auc": 0.6420238923315911,
+      "participating_clients": 3,
+      "round_duration": 5.092062473297119,
+      "client_variance": 0.0011563166225706644
+    },
+    {
+      "round": 3,
+      "val_accuracy": 0.7278999568779646,
+      "val_f1_score": 0.8414174415682332,
+      "val_auc": 0.6569482077954047,
+      "participating_clients": 3,
+      "round_duration": 5.1180737018585205,
+      "client_variance": 0.0009150250208031077
+    }
+  ],
+  "client_performances": {
+    "1": [
+      0.7785235047340393,
+      0.7771812081336975,
+      0.7731543779373169
+    ],
+    "2": [
+      0.7017082571983337,
+      0.7030223608016968,
+      0.7082785964012146
+    ],
+    "3": [
+      0.7097170948982239,
+      0.707257091999054,
+      0.7097170948982239
+    ]
+  },
+  "final_accuracy": 0.7248814144027598,
+  "final_f1_score": 0.8401002506265665,
+  "final_auc": 0.6206598177305268,
+  "convergence_round": 3,
+  "total_rounds": 3,
+  "avg_round_duration": 5.308187802632649,
+  "final_client_variance": 0.0009150250208031077,
+  "total_duration": 16.045621633529663
+}

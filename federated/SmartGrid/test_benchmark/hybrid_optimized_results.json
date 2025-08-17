@@ -1,0 +1,59 @@
+{
+  "config_name": "Hybrid Optimized",
+  "strategy": "hybrid",
+  "client_type": "adaptive",
+  "round_metrics": [
+    {
+      "round": 1,
+      "val_accuracy": 0.7218628719275549,
+      "val_f1_score": 0.8378174503394519,
+      "val_auc": 0.5807298611253564,
+      "participating_clients": 3,
+      "round_duration": 5.796515226364136,
+      "client_variance": 0.000643782780015398
+    },
+    {
+      "round": 2,
+      "val_accuracy": 0.7201379905131522,
+      "val_f1_score": 0.8363177805800757,
+      "val_auc": 0.620240228703992,
+      "participating_clients": 3,
+      "round_duration": 5.156015396118164,
+      "client_variance": 0.0008405997533181953
+    },
+    {
+      "round": 3,
+      "val_accuracy": 0.7201379905131522,
+      "val_f1_score": 0.8352373698908352,
+      "val_auc": 0.6374955943152214,
+      "participating_clients": 3,
+      "round_duration": 5.119370937347412,
+      "client_variance": 0.0009282840713069618
+    }
+  ],
+  "client_performances": {
+    "1": [
+      0.7583892345428467,
+      0.7691274881362915,
+      0.7704697847366333
+    ],
+    "2": [
+      0.704336404800415,
+      0.7109066843986511,
+      0.7056504487991333
+    ],
+    "3": [
+      0.7047970294952393,
+      0.7047970294952393,
+      0.7060270309448242
+    ]
+  },
+  "final_accuracy": 0.7222940922811557,
+  "final_f1_score": 0.8373737373737373,
+  "final_auc": 0.6105029660282075,
+  "convergence_round": 3,
+  "total_rounds": 3,
+  "avg_round_duration": 5.357300519943237,
+  "final_client_variance": 0.0009282840713069618,
+  "total_duration": 16.195751428604126
+}

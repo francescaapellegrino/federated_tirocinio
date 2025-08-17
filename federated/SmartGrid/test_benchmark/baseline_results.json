@@ -1,0 +1,59 @@
+{
+  "config_name": "Baseline FedAvg",
+  "strategy": "standard",
+  "client_type": "standard",
+  "round_metrics": [
+    {
+      "round": 1,
+      "val_accuracy": 0.723156532988357,
+      "val_f1_score": 0.8391783567134269,
+      "val_auc": 0.5910438256076116,
+      "participating_clients": 3,
+      "round_duration": 4.843321323394775,
+      "client_variance": 0.0011126991335604292
+    },
+    {
+      "round": 2,
+      "val_accuracy": 0.7253126347563605,
+      "val_f1_score": 0.8404708239418983,
+      "val_auc": 0.6177208297046654,
+      "participating_clients": 3,
+      "round_duration": 4.613114833831787,
+      "client_variance": 0.0012730008012435217
+    },
+    {
+      "round": 3,
+      "val_accuracy": 0.7240189736955585,
+      "val_f1_score": 0.8398398398398398,
+      "val_auc": 0.6272772028890103,
+      "participating_clients": 3,
+      "round_duration": 4.874763488769531,
+      "client_variance": 0.0013571985377143706
+    }
+  ],
+  "client_performances": {
+    "1": [
+      0.7785235047340393,
+      0.7785235047340393,
+      0.7812080383300781
+    ],
+    "2": [
+      0.7082785964012146,
+      0.6990801692008972,
+      0.7003942131996155
+    ],
+    "3": [
+      0.707257091999054,
+      0.707257091999054,
+      0.7060270309448242
+    ]
+  },
+  "final_accuracy": 0.7253126347563605,
+  "final_f1_score": 0.8407101775443862,
+  "final_auc": 0.5901459050908271,
+  "convergence_round": 3,
+  "total_rounds": 3,
+  "avg_round_duration": 4.777066548665364,
+  "final_client_variance": 0.0013571985377143706,
+  "total_duration": 14.494886636734009
+}

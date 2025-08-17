@@ -1,0 +1,90 @@
+{
+  "summary": {
+    "total_configurations": 6,
+    "best_accuracy": {
+      "config": "Baseline FedAvg",
+      "value": 0.7253126347563605
+    },
+    "best_f1": {
+      "config": "Baseline FedAvg",
+      "value": 0.8407101775443862
+    },
+    "fastest_convergence": {
+      "config": "Baseline FedAvg",
+      "rounds": "3"
+    },
+    "best_fairness": {
+      "config": "SmartGrid Optimized",
+      "variance": 0.0007039333904267487
+    }
+  },
+  "detailed_comparison": [
+    {
+      "Configuration": "Baseline FedAvg",
+      "Strategy": "standard",
+      "Final_Accuracy": 0.7253126347563605,
+      "Final_F1_Score": 0.8407101775443862,
+      "Final_AUC": 0.5901459050908271,
+      "Convergence_Round": 3,
+      "Avg_Round_Duration": 4.777066548665364,
+      "Client_Variance": 0.0013571985377143706,
+      "Total_Rounds": 3
+    },
+    {
+      "Configuration": "Class Weighted",
+      "Strategy": "class_weighted",
+      "Final_Accuracy": 0.7248814144027598,
+      "Final_F1_Score": 0.8405,
+      "Final_AUC": 0.5839042852161069,
+      "Convergence_Round": 3,
+      "Avg_Round_Duration": 4.685543457667033,
+      "Client_Variance": 0.001134450565881511,
+      "Total_Rounds": 3
+    },
+    {
+      "Configuration": "Outlier Penalty",
+      "Strategy": "outlier_penalty",
+      "Final_Accuracy": 0.7248814144027598,
+      "Final_F1_Score": 0.8403403403403403,
+      "Final_AUC": 0.5631761210952578,
+      "Convergence_Round": 3,
+      "Avg_Round_Duration": 4.717770417531331,
+      "Client_Variance": 0.001237841772169506,
+      "Total_Rounds": 3
+    },
+    {
+      "Configuration": "Adaptive Learning",
+      "Strategy": "adaptive",
+      "Final_Accuracy": 0.7248814144027598,
+      "Final_F1_Score": 0.8401002506265665,
+      "Final_AUC": 0.6206598177305268,
+      "Convergence_Round": 3,
+      "Avg_Round_Duration": 5.308187802632649,
+      "Client_Variance": 0.0009150250208031077,
+      "Total_Rounds": 3
+    },
+    {
+      "Configuration": "Hybrid Optimized",
+      "Strategy": "hybrid",
+      "Final_Accuracy": 0.7222940922811557,
+      "Final_F1_Score": 0.8373737373737373,
+      "Final_AUC": 0.6105029660282075,
+      "Convergence_Round": 3,
+      "Avg_Round_Duration": 5.357300519943237,
+      "Client_Variance": 0.0009282840713069618,
+      "Total_Rounds": 3
+    },
+    {
+      "Configuration": "SmartGrid Optimized",
+      "Strategy": "smartgrid_optimized",
+      "Final_Accuracy": 0.7253126347563605,
+      "Final_F1_Score": 0.8407101775443862,
+      "Final_AUC": 0.6214094834579358,
+      "Convergence_Round": 3,
+      "Avg_Round_Duration": 5.396417776743571,
+      "Client_Variance": 0.0007039333904267487,
+      "Total_Rounds": 3
+    }
+  ],
+  "analysis_timestamp": "2025-08-17T17:40:27.154031"
+}

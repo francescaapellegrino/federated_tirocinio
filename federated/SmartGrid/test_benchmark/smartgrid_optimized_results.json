@@ -1,0 +1,59 @@
+{
+  "config_name": "SmartGrid Optimized",
+  "strategy": "smartgrid_optimized",
+  "client_type": "adaptive",
+  "round_metrics": [
+    {
+      "round": 1,
+      "val_accuracy": 0.7244501940491591,
+      "val_f1_score": 0.8402100525131283,
+      "val_auc": 0.5848744682874614,
+      "participating_clients": 3,
+      "round_duration": 5.919206619262695,
+      "client_variance": 0.0012139360392590486
+    },
+    {
+      "round": 2,
+      "val_accuracy": 0.7248814144027598,
+      "val_f1_score": 0.8405,
+      "val_auc": 0.6278832759273384,
+      "participating_clients": 3,
+      "round_duration": 5.1543567180633545,
+      "client_variance": 0.0012358656816320805
+    },
+    {
+      "round": 3,
+      "val_accuracy": 0.7240189736955585,
+      "val_f1_score": 0.83991995997999,
+      "val_auc": 0.6455363186937169,
+      "participating_clients": 3,
+      "round_duration": 5.115689992904663,
+      "client_variance": 0.0007039333904267487
+    }
+  ],
+  "client_performances": {
+    "1": [
+      0.7785235047340393,
+      0.7785235047340393,
+      0.7704697847366333
+    ],
+    "2": [
+      0.7003942131996155,
+      0.704336404800415,
+      0.7201051115989685
+    ],
+    "3": [
+      0.7097170948982239,
+      0.7035670280456543,
+      0.7097170948982239
+    ]
+  },
+  "final_accuracy": 0.7253126347563605,
+  "final_f1_score": 0.8407101775443862,
+  "final_auc": 0.6214094834579358,
+  "convergence_round": 3,
+  "total_rounds": 3,
+  "avg_round_duration": 5.396417776743571,
+  "final_client_variance": 0.0007039333904267487,
+  "total_duration": 16.314512014389038
+}

@@ -1,0 +1,59 @@
+{
+  "config_name": "Class Weighted",
+  "strategy": "class_weighted",
+  "client_type": "standard",
+  "round_metrics": [
+    {
+      "round": 1,
+      "val_accuracy": 0.7244501940491591,
+      "val_f1_score": 0.8402100525131283,
+      "val_auc": 0.5257804822103577,
+      "participating_clients": 3,
+      "round_duration": 4.592153549194336,
+      "client_variance": 0.0011734425819543363
+    },
+    {
+      "round": 2,
+      "val_accuracy": 0.7248814144027598,
+      "val_f1_score": 0.8405,
+      "val_auc": 0.5749297421485569,
+      "participating_clients": 3,
+      "round_duration": 4.9044952392578125,
+      "client_variance": 0.0012593068888146302
+    },
+    {
+      "round": 3,
+      "val_accuracy": 0.7248814144027598,
+      "val_f1_score": 0.8405,
+      "val_auc": 0.6060376063658182,
+      "participating_clients": 3,
+      "round_duration": 4.55998158454895,
+      "client_variance": 0.001134450565881511
+    }
+  ],
+  "client_performances": {
+    "1": [
+      0.7785235047340393,
+      0.7798658013343811,
+      0.7785235047340393
+    ],
+    "2": [
+      0.7069644927978516,
+      0.7056504487991333,
+      0.7095926403999329
+    ],
+    "3": [
+      0.7047970294952393,
+      0.7035670280456543,
+      0.7047970294952393
+    ]
+  },
+  "final_accuracy": 0.7248814144027598,
+  "final_f1_score": 0.8405,
+  "final_auc": 0.5839042852161069,
+  "convergence_round": 3,
+  "total_rounds": 3,
+  "avg_round_duration": 4.685543457667033,
+  "final_client_variance": 0.001134450565881511,
+  "total_duration": 14.180204153060913
+}

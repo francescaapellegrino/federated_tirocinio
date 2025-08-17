@@ -262,11 +262,26 @@ class SmartGridClientAnalyzer:
         """
         Raggruppa i client in cluster basati sulla similarità.
         """
-        print(f"\n🎯 CLUSTERING CLIENT (k={n_clusters})...")
+        client_ids_ordered = sorted(self.client_data.keys())
+        num_clients = len(client_ids_ordered)
+        
+        # Adatta numero di cluster al numero di client disponibili
+        max_clusters = min(n_clusters, num_clients - 1) if num_clients > 1 else 1
+        if max_clusters < 2:
+            print(f"\n🎯 CLUSTERING CLIENT: troppi pochi client ({num_clients}) per clustering, saltato")
+            self.clustering_results = {
+                'n_clusters': 1,
+                'cluster_labels': [0] * num_clients,
+                'clusters': {0: client_ids_ordered},
+                'silhouette_score': 0.0,
+                'centroids': None
+            }
+            return self.clustering_results
+        
+        print(f"\n🎯 CLUSTERING CLIENT (k={max_clusters})...")
         
         # Usa le feature medie normalizzate
         client_profiles = []
-        client_ids_ordered = sorted(self.client_data.keys())
         
         for client_id in client_ids_ordered:
             profile = self.client_stats[client_id]['feature_means'].values
@@ -283,11 +298,14 @@ class SmartGridClientAnalyzer:
         client_profiles_normalized = scaler.fit_transform(client_profiles)
         
         # K-means clustering
-        kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+        kmeans = KMeans(n_clusters=max_clusters, random_state=42, n_init=10)
         cluster_labels = kmeans.fit_predict(client_profiles_normalized)
         
-        # Calcola silhouette score
-        silhouette_avg = silhouette_score(client_profiles_normalized, cluster_labels)
+        # Calcola silhouette score solo se abbiamo abbastanza campioni e cluster diversi
+        if num_clients >= 2 and len(set(cluster_labels)) > 1:
+            silhouette_avg = silhouette_score(client_profiles_normalized, cluster_labels)
+        else:
+            silhouette_avg = 0.0
         
         # Organizza risultati per cluster
         clusters = {}
@@ -298,7 +316,7 @@ class SmartGridClientAnalyzer:
             clusters[cluster_id].append(client_id)
         
         self.clustering_results = {
-            'n_clusters': n_clusters,
+            'n_clusters': max_clusters,
             'cluster_labels': cluster_labels,
             'clusters': clusters,
             'silhouette_score': silhouette_avg,

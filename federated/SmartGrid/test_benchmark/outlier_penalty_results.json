@@ -1,0 +1,59 @@
+{
+  "config_name": "Outlier Penalty",
+  "strategy": "outlier_penalty",
+  "client_type": "standard",
+  "round_metrics": [
+    {
+      "round": 1,
+      "val_accuracy": 0.7244501940491591,
+      "val_f1_score": 0.8400500625782228,
+      "val_auc": 0.5395756369827632,
+      "participating_clients": 3,
+      "round_duration": 5.050750494003296,
+      "client_variance": 0.0014232613214354552
+    },
+    {
+      "round": 2,
+      "val_accuracy": 0.7240189736955585,
+      "val_f1_score": 0.8397596394591887,
+      "val_auc": 0.5691310218018458,
+      "participating_clients": 3,
+      "round_duration": 4.559512615203857,
+      "client_variance": 0.0011897658005537437
+    },
+    {
+      "round": 3,
+      "val_accuracy": 0.7253126347563605,
+      "val_f1_score": 0.8407101775443862,
+      "val_auc": 0.5913958141798713,
+      "participating_clients": 3,
+      "round_duration": 4.543048143386841,
+      "client_variance": 0.001237841772169506
+    }
+  ],
+  "client_performances": {
+    "1": [
+      0.7785235047340393,
+      0.7758389115333557,
+      0.7771812081336975
+    ],
+    "2": [
+      0.6951379776000977,
+      0.704336404800415,
+      0.697766125202179
+    ],
+    "3": [
+      0.7023370265960693,
+      0.7011070251464844,
+      0.7084870934486389
+    ]
+  },
+  "final_accuracy": 0.7248814144027598,
+  "final_f1_score": 0.8403403403403403,
+  "final_auc": 0.5631761210952578,
+  "convergence_round": 3,
+  "total_rounds": 3,
+  "avg_round_duration": 4.717770417531331,
+  "final_client_variance": 0.001237841772169506,
+  "total_duration": 14.27466368675232
+}
