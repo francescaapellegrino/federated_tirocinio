@@ -1,0 +1,126 @@
+SMARTGRID FEDERATED LEARNING - ANALISI DISTRIBUZIONE CLIENT
+================================================================================
+
+Data analisi: 2025-08-17 17:25:22
+Client analizzati: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+Componenti PCA: 20
+
+1. STATISTICHE GENERALI
+------------------------------
+Numero client: 13
+Campioni totali: 67,986
+Campioni per client: 5,229 (media)
+
+Dettagli per client:
+  Client  1:  4966 campioni,  77.8% attacchi, 5619 outlier
+  Client  2:  5069 campioni,  69.5% attacchi, 5577 outlier
+  Client  3:  5415 campioni,  70.4% attacchi, 7043 outlier
+  Client  4:  5202 campioni,  65.4% attacchi, 5555 outlier
+  Client  5:  5161 campioni,  71.3% attacchi, 6242 outlier
+  Client  6:  4967 campioni,  70.3% attacchi, 6295 outlier
+  Client  7:  5236 campioni,  74.7% attacchi, 6654 outlier
+  Client  8:  5315 campioni,  71.0% attacchi, 5461 outlier
+  Client  9:  5340 campioni,  66.9% attacchi, 6413 outlier
+  Client 10:  5569 campioni,  70.4% attacchi, 6251 outlier
+  Client 11:  5251 campioni,  75.6% attacchi, 6434 outlier
+  Client 12:  5224 campioni,  66.1% attacchi, 5663 outlier
+  Client 13:  5271 campioni,  78.1% attacchi, 6185 outlier
+
+2. ANALISI ETEROGENEITÀ (NON-IID)
+-----------------------------------
+Indice eterogeneità complessivo: 0.125
+  (0.0 = omogeneo, 1.0 = molto eterogeneo)
+
+Metriche dettagliate:
+  • CV distribuzione classi: 0.0559
+  • CV numero campioni: 0.0310
+  • Varianza distribuzione classi: 0.0016
+  • Std distribuzione classi: 0.0399
+
+3. CLUSTERING E SIMILARITÀ
+------------------------------
+Numero cluster ottimale: 3
+Silhouette score: 0.110
+
+Composizione cluster:
+  Cluster 0: [1, 2, 7, 8, 9, 12, 13]
+  Cluster 2: [3, 4, 10, 11]
+  Cluster 1: [5, 6]
+
+Similarità tra client:
+  • Più simili: Client 4 - Client 11 (similarità: 0.393)
+  • Più diversi: Client 3 - Client 12 (similarità: -0.615)
+  • Similarità media: -0.082
+  • Deviazione standard: 0.213
+
+4. CLIENT OUTLIER
+--------------------
+Client outlier identificati: 6
+Soglia Z-score: 2.0
+
+Dettagli outlier:
+  Client 1: Z-score = 2.820
+    Motivi: Attack ratio estremo, Numero campioni anomalo, Sbilanciamento classi estremo
+  Client 4: Z-score = 2.494
+    Motivi: Sbilanciamento classi estremo
+  Client 6: Z-score = 2.050
+    Motivi: Numero campioni anomalo
+  Client 10: Z-score = 2.186
+    Motivi: Numero campioni anomalo
+  Client 12: Z-score = 2.155
+    Motivi: Combinazione di fattori
+  Client 13: Z-score = 2.366
+    Motivi: Attack ratio estremo, Sbilanciamento classi estremo
+
+5. RACCOMANDAZIONI PER FEDERATED LEARNING
+---------------------------------------------
+Analisi raccomandazioni:
+
+📊 STRATEGIA AGGREGAZIONE: FEDAVG STANDARD SUFFICIENTE
+   • Bassa eterogeneità, FedAvg standard dovrebbe funzionare bene
+
+🎯 CLIENT SELECTION: SELEZIONE ADATTIVA NECESSARIA
+   • Diversi client outlier identificati
+   • Implementare client selection intelligente per round
+   • Evitare di selezionare troppi outlier nello stesso round
+
+🔧 LEARNING RATES: UNIFORMI SUFFICIENTI
+   • Bassa variabilità, learning rate uniforme appropriato
+
+CONFIGURAZIONI RACCOMANDATE:
+------------------------------
+• Fraction_fit: 0.8-1.0 (può usare più client)
+• Min_fit_clients: 2-3
+• Weighted aggregation: Opzionale
+• Adaptive LR: Opzionale
+• Client selection: Random
+
+• PCA components: 20 (appropriato per comunicazione FL)
+• Rounds: 50-100 (per convergenza con questa eterogeneità)
+• Evaluation frequency: Ogni 5-10 round
+
+6. METRICHE PER BENCHMARK
+-------------------------
+Metriche da monitorare nel confronto baseline vs ottimizzato:
+
+Performance:
+  • Global accuracy su test set
+  • F1-score (importante per classi sbilanciate)
+  • AUC-ROC
+  • Precision e Recall per classe
+
+Convergenza:
+  • Numero round per convergenza
+  • Stabilità loss nelle ultime epoch
+  • Tempo di convergenza
+
+Fairness:
+  • Varianza accuracy tra client
+  • Performance per cluster di client
+  • Impatto client outlier
+
+Efficienza:
+  • Tempo per round
+  • Comunicazione overhead
+  • Numero client partecipanti per round
+
