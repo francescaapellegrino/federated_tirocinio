@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./federated/SmartGrid/optimization_results"
+    ]
+}

@@ -1,6 +1,6 @@
 """
-Server federato SmartGrid 
-Author: francescaapellegrino
+Server federato SmartGrid
+Francesca Pellegrino
 """
 
 import flwr as fl
@@ -19,38 +19,137 @@ from typing import Dict, List, Tuple, Any
 import warnings
 warnings.filterwarnings('ignore')
 
-# ============================================================================
-# 🔧 SERVER CONFIGURATION 
-# ============================================================================
+from optimized_config_20250822_165443 import OptimizedConfig
 
-class HybridServerConfig:
-    """Configurazione server."""
+
+# CONFIGURAZIONE SERVER 
+
+class ServerConfig:
     
-    # Model architecture
-    HIDDEN_LAYERS = [128, 64, 32]
-    DROPOUT_RATES = [0.2, 0.15, 0.1]
-    LEARNING_RATE = 0.001
+    # Architettura modello
+    HIDDEN_LAYERS = [96, 48, 24, 8]  # numero neuroni per layer
+    DROPOUT_RATES = [0.300, 0.100, 0.400, 0.100]
+    LEARNING_RATE = 0.0012246410    # tasso di apprendimento
+    L2_REG = 0.0000997142   # fattore di regolarizzazione L2 che penalizza i pesi grandi
     
     # Data preprocessing
     PCA_COMPONENTS = 30
-    STATISTICAL_FEATURES = 12
+    STATISTICAL_FEATURES = 12    # numero feature statistiche aggiuntive
     TOTAL_FEATURES = 42
-    
+
     # Server specific
-    NUM_ROUNDS = 100
+    NUM_ROUNDS = 100    # invio pesi, aggiornamento, aggregazione
     MIN_CLIENTS = 2
-    
-    # System info
-    VERSION = "2.5"
+
+    ENABLE_FEDERATED_EARLY_STOPPING = False    # False: il training prosegue per tutti i round previsti
+    FEDERATED_PATIENCE = 10    # numero di round senza miglioramento prima di fermare il training
+    FEDERATED_MIN_DELTA = 0.001    # minimo miglioramento per considerare un progresso
+    FEDERATED_MONITOR = 'val_loss'  # metrica da monitorare per early stopping
+    FEDERATED_MODE = 'min'
+    FEDERATED_MIN_ROUNDS = 25
+
+    # Info sistema
+    VERSION = "1.0"
     RANDOM_SEED = 42
 
-# ============================================================================
-# 🔧 SERVER FEATURE ENGINEERING
-# ============================================================================
-
-class ServerFeatureEngineer:
-    """Feature engineering server."""
+# EARLY STOPPING
+class FederatedEarlyStopping:
     
+    def __init__(self, monitor='val_loss', min_delta=0.003, patience=8, mode='min', min_rounds=12):
+        self.monitor = monitor  # metrica da controllare
+        self.min_delta = abs(min_delta)
+        self.patience = patience
+        self.mode = mode
+        self.min_rounds = min_rounds
+        self.best_score = None
+        self.best_round = 0
+        self.wait = 0
+        self.should_stop = False
+        self.rounds_completed = 0
+        
+        # DEBUG PRINT
+        print(f"FederatedEarlyStopping inizializzato:")
+        print(f"monitor='{self.monitor}' (validation loss from clients)")
+        print(f"min_delta={self.min_delta}")
+        print(f"patience={self.patience}")
+        print(f"mode={self.mode}")
+        print(f"min_rounds={self.min_rounds}")
+
+        if mode == 'min':
+            self.monitor_op = lambda current, best: current < (best - self.min_delta)
+            self.best_score = float('inf')
+        else:
+            self.monitor_op = lambda current, best: current > (best + self.min_delta)
+            self.best_score = float('-inf')
+    
+    def update(self, round_num: int, metrics: Dict[str, float]) -> bool:
+        """Aggiorna early stopping. Returns True se deve fermare."""
+        print(f"\nEARLY STOPPING UPDATE ROUND {round_num}")
+        
+        self.rounds_completed = round_num
+        
+        print(f"Available metrics: {list(metrics.keys())}")
+        print(f"Looking for monitor: '{self.monitor}'")
+        
+        if self.monitor not in metrics:
+            print(f"Monitor '{self.monitor}' NOT FOUND!")
+            return False
+        
+        current_score = metrics[self.monitor]
+        print(f"Monitor found: {self.monitor} = {current_score:.6f}")
+        print(f"Best score so far: {self.best_score:.6f}")
+        print(f"Current wait: {self.wait}/{self.patience}")
+        
+        # Non attivare early stopping nei primi rounds
+        if round_num < self.min_rounds:
+            print(f"Warm-up phase: round {round_num} < min_rounds {self.min_rounds}")
+            if self.monitor_op(current_score, self.best_score):
+                old_best = self.best_score
+                self.best_score = current_score
+                self.best_round = round_num
+                print(f"NEW BEST in warm-up: {old_best:.6f} → {current_score:.6f}")
+            return False
+        
+        # Verifica miglioramento
+        improvement_threshold = self.best_score + self.min_delta
+        print(f"Improvement needed: > {improvement_threshold:.6f}")
+        
+        if self.monitor_op(current_score, self.best_score):
+            old_best = self.best_score
+            self.best_score = current_score
+            self.best_round = round_num
+            self.wait = 0
+            print(f"IMPROVEMENT! {old_best:.6f} → {current_score:.6f}")
+            print(f"Wait reset to 0")
+        else:
+            self.wait += 1
+            print(f"NO IMPROVEMENT: {current_score:.6f} ≤ {improvement_threshold:.6f}")
+            print(f"Wait increased to {self.wait}/{self.patience}")
+            
+            if self.wait >= self.patience:
+                print(f"STOPPING TRIGGERED! Wait {self.wait} >= patience {self.patience}")
+                print(f"Best was: {self.best_score:.6f} at round {self.best_round}")
+                self.should_stop = True
+                return True
+        
+        print(f"Continue training")
+        return False
+    
+    def get_summary(self):
+        return {
+            'federated_early_stopped': self.should_stop,
+            'federated_stopped_round': self.rounds_completed if self.should_stop else None,
+            'federated_best_round': self.best_round,
+            'federated_best_score': float(self.best_score) if self.best_score not in [float('inf'), float('-inf')] else None,
+            'federated_rounds_saved': (50 - self.rounds_completed) if self.should_stop else 0
+        }
+
+# VARIABILE GLOBALE PER EARLY STOPPING
+GLOBAL_EARLY_STOPPING = None
+
+# SERVER FEATURE ENGINEERING
+class ServerFeatureEngineer:
+
     def add_statistical_features(self, X):
         """12 statistical features."""
         mean_per_row = np.mean(X, axis=1).reshape(-1, 1)
@@ -78,17 +177,10 @@ class ServerFeatureEngineer:
         
         return X_enhanced
 
-# ============================================================================
-# 📊 GLOBAL DATA LOADING
-# ============================================================================
-
-def load_hybrid_server_data_v25():
-    """
-    Carica dataset globale per server con preprocessing.
-    """
-    print("=== CARICAMENTO DATASET GLOBALE SERVER ===")
-    
-    config = HybridServerConfig()
+# CARICAMENTO DATASET PER SERVER CON PREPROCESSING
+def load_server_data():
+    print("CARICAMENTO DATASET GLOBALE SERVER")
+    config = ServerConfig()
     script_dir = os.path.dirname(os.path.abspath(__file__))
     validation_clients = [14, 15]
     df_list = []
@@ -98,13 +190,13 @@ def load_hybrid_server_data_v25():
         try:
             df = pd.read_csv(file_path)
             df_list.append(df)
-            print(f"  - Caricato data{client_id}.csv: {len(df)} campioni")
+            print(f"Caricato data{client_id}.csv: {len(df)} campioni")
         except FileNotFoundError:
-            print(f"  - File data{client_id}.csv non trovato, saltato")
+            print(f"File data{client_id}.csv non trovato, saltato")
             continue
 
     if not df_list:
-        print("  - ATTENZIONE: Usando fallback data1.csv per server")
+        print("ATTENZIONE: Usando fallback data1.csv per server")
         fallback_path = os.path.join(script_dir, "..", "..", "data", "SmartGrid", "data1.csv")
         try:
             df_fallback = pd.read_csv(fallback_path)
@@ -117,18 +209,18 @@ def load_hybrid_server_data_v25():
     X = df_global.drop(columns=["marker"])
     y = (df_global["marker"] != "Natural").astype(int)
     
-    print(f"  - Dataset grezzo: {len(X)} campioni, {X.shape[1]} feature")
-    print(f"  - Distribuzione: {y.sum()} attacchi ({y.mean()*100:.1f}%)")
+    print(f"Dataset grezzo: {len(X)} campioni, {X.shape[1]} feature")
+    print(f"Distribuzione: {y.sum()} attacchi ({y.mean()*100:.1f}%)")
     
-    # STEP 1: Pulizia (IDENTICA al client)
-    print(f"  🔧 Pulizia base...")
+    # STEP 1: Pulizia
+    print(f"Pulizia base...")
     X.replace([np.inf, -np.inf], np.nan, inplace=True)
     if X.isnull().sum().sum() > 0:
         X.fillna(X.median(), inplace=True)
-        print(f"     - NaN imputati con mediana")
-    
-    # STEP 2: PCA (IDENTICO al client)
-    print(f"  🎯 PCA {config.PCA_COMPONENTS} componenti...")
+        print(f"NaN imputati con mediana")
+
+    # STEP 2: PCA
+    print(f"PCA {config.PCA_COMPONENTS} componenti...")
     scaler_pca = StandardScaler()
     X_scaled = scaler_pca.fit_transform(X)
     
@@ -136,82 +228,252 @@ def load_hybrid_server_data_v25():
     X_pca = pca.fit_transform(X_scaled)
     
     variance_explained = pca.explained_variance_ratio_.sum()
-    print(f"     - PCA: {X.shape[1]} → {X_pca.shape[1]} feature")
-    print(f"     - Varianza spiegata: {variance_explained*100:.2f}%")
+    print(f"PCA: {X.shape[1]} → {X_pca.shape[1]} feature")
+    print(f"Varianza spiegata: {variance_explained*100:.2f}%")
+
+    # STEP 3: no statistical features
+    print(f"Approccio: usando solo PCA features...")
+    X_enhanced = X_pca
+    print(f"Features: {X_pca.shape[1]} (solo PCA)")
     
-    # STEP 3: Statistical Features (IDENTICHE al client)
-    print(f"  🔧 Statistical features...")
-    feature_engineer = ServerFeatureEngineer()
-    X_enhanced = feature_engineer.add_statistical_features(X_pca)
-    print(f"     - Features: {X_pca.shape[1]} → {X_enhanced.shape[1]} (+{config.STATISTICAL_FEATURES})")
-    
-    # STEP 4: Normalizzazione finale (IDENTICA al client)
-    print(f"  ⚡ Normalizzazione finale...")
+    # STEP 4: Normalizzazione finale
+    print(f"Normalizzazione finale...")
     final_scaler = StandardScaler()
     X_final = final_scaler.fit_transform(X_enhanced)
     
-    print(f"✅ Dataset server preparato:")
-    print(f"   - Pipeline: {X.shape[1]} → {X_pca.shape[1]} → {X_final.shape[1]} feature")
-    print(f"   - Campioni finali: {len(X_final)}")
-    print(f"   - Preprocessing: IDENTICO ai client per consistenza")
+    print(f"Dataset server preparato:")
+    print(f"Pipeline: {X.shape[1]} → {X_pca.shape[1]} → {X_final.shape[1]} feature")
+    print(f"Campioni finali: {len(X_final)}")
+    print(f"Preprocessing")
     print("=" * 70)
     
     return X_final, y
 
-# ============================================================================
-# 🧠 SERVER MODEL (IDENTICO AL CLIENT)
-# ============================================================================
+# MODELLO SERVER OTTIMIZZATO SCIENTIFICAMENTE CON OPTUNA
+def create_server_model(input_shape: int):
 
-def create_hybrid_server_model_v25(input_shape: int) -> keras.Model:
-    """
-    Crea modello server IDENTICO all'architettura client.
-    """
-    config = HybridServerConfig()
+    tf.random.set_seed(42)
+    np.random.seed(42)
+    
+    # Configurazione ottimizzata
+    optimized_config = OptimizedConfig()
+    
+    # Funzione attivazione ottimizzata
+    if optimized_config.ACTIVATION_FUNCTION == 'leaky_relu':
+        activation_layer = lambda: keras.layers.LeakyReLU(alpha=0.1)
+        initializer = 'he_normal'
+    elif optimized_config.ACTIVATION_FUNCTION == 'selu':
+        activation_layer = lambda: keras.layers.Activation('selu')
+        initializer = 'lecun_normal'
+    elif optimized_config.ACTIVATION_FUNCTION == 'elu':
+        activation_layer = lambda: keras.layers.ELU(alpha=1.0)
+        initializer = 'he_normal'
+    else:  # relu
+        activation_layer = lambda: keras.layers.Activation('relu')
+        initializer = 'he_normal'
+    
+    # Architettura ottimizzata
+    model_layers = [
+        keras.layers.Input(shape=(input_shape,), name="input_features"),
+        
+        # Layer 1 ottimizzato
+        keras.layers.Dense(
+            optimized_config.HIDDEN_LAYERS[0], 
+            kernel_regularizer=keras.regularizers.L2(optimized_config.L2_REG),
+            kernel_initializer=initializer,
+            name="dense_1"
+        ),
+        activation_layer(),
+    ]
+    
+    if optimized_config.USE_BATCH_NORM:
+        model_layers.append(keras.layers.BatchNormalization(name="batch_norm_1"))
+    
+    model_layers.extend([
+        keras.layers.Dropout(optimized_config.DROPOUT_RATES[0], name="dropout_1"),
+        
+        # Layer 2 ottimizzato
+        keras.layers.Dense(
+            optimized_config.HIDDEN_LAYERS[1], 
+            kernel_regularizer=keras.regularizers.L2(optimized_config.L2_REG),
+            kernel_initializer=initializer,
+            name="dense_2"
+        ),
+        activation_layer(),
+    ])
+    
+    if optimized_config.USE_BATCH_NORM:
+        model_layers.append(keras.layers.BatchNormalization(name="batch_norm_2"))
+    
+    model_layers.extend([
+        keras.layers.Dropout(optimized_config.DROPOUT_RATES[1], name="dropout_2"),
+        
+        # Layer 3 ottimizzato
+        keras.layers.Dense(
+            optimized_config.HIDDEN_LAYERS[2], 
+            kernel_regularizer=keras.regularizers.L2(optimized_config.L2_REG),
+            kernel_initializer=initializer,
+            name="dense_3"
+        ),
+        activation_layer(),
+    ])
+    
+    if optimized_config.USE_BATCH_NORM:
+        model_layers.append(keras.layers.BatchNormalization(name="batch_norm_3"))
+    
+    model_layers.extend([
+        keras.layers.Dropout(optimized_config.DROPOUT_RATES[2], name="dropout_3"),
+        
+        # Layer 4 ottimizzato
+        keras.layers.Dense(
+            optimized_config.HIDDEN_LAYERS[3], 
+            kernel_regularizer=keras.regularizers.L2(optimized_config.L2_REG),
+            kernel_initializer=initializer,
+            name="dense_4"
+        ),
+        activation_layer(),
+    ])
+    
+    if optimized_config.USE_BATCH_NORM:
+        model_layers.append(keras.layers.BatchNormalization(name="batch_norm_4"))
+    
+    model_layers.extend([
+        keras.layers.Dropout(optimized_config.DROPOUT_RATES[3], name="dropout_4"),
+        
+        # Output layer
+        keras.layers.Dense(
+            1, 
+            activation="sigmoid",
+            kernel_initializer="glorot_uniform",
+            name="output"
+        )
+    ])
+    
+    model = keras.Sequential(model_layers, name="SmartGrid_Server_Optimized_v26")
+    
+    # Ottimizzatore ottimizzato
+    if optimized_config.OPTIMIZER_TYPE == 'adamw':
+        optimizer = keras.optimizers.AdamW(
+            learning_rate=optimized_config.LEARNING_RATE,
+            weight_decay=optimized_config.L2_REG * 0.1,
+            beta_1=optimized_config.BETA_1,
+            beta_2=optimized_config.BETA_2,
+            clipnorm=optimized_config.CLIPNORM
+        )
+    elif optimized_config.OPTIMIZER_TYPE == 'nadam':
+        optimizer = keras.optimizers.Nadam(
+            learning_rate=optimized_config.LEARNING_RATE,
+            beta_1=optimized_config.BETA_1,
+            beta_2=optimized_config.BETA_2,
+            clipnorm=optimized_config.CLIPNORM
+        )
+    else:  # adam
+        optimizer = keras.optimizers.Adam(
+            learning_rate=optimized_config.LEARNING_RATE,
+            beta_1=optimized_config.BETA_1,
+            beta_2=optimized_config.BETA_2,
+            clipnorm=optimized_config.CLIPNORM
+        )
+    
+    # Compilazione ottimizzata
+    model.compile(
+        optimizer=optimizer,
+        loss=keras.losses.BinaryCrossentropy(),
+        metrics=[
+            "accuracy",
+            keras.metrics.Precision(name="precision"),
+            keras.metrics.Recall(name="recall"),
+            keras.metrics.F1Score(name="f1_score"),
+            keras.metrics.AUC(name="auc", curve='ROC')
+        ]
+    )
+
+    print(f"Server Model ottimizzato scientificamente creato:")
+    print(f"Architettura: {optimized_config.ARCHITECTURE_SUMMARY}")
+    print(f"Input shape: {input_shape}")
+    print(f"LR ottimizzato: {optimized_config.LEARNING_RATE:.6f}")
+    print(f"L2 ottimizzato: {optimized_config.L2_REG:.6f}")
+    print(f"Optimizer: {optimized_config.OPTIMIZER_TYPE}")
+    print(f"Activation: {optimized_config.ACTIVATION_FUNCTION}")
+    print(f"BatchNorm: {optimized_config.USE_BATCH_NORM}")
+    print(f"Parametri: {model.count_params():,}")
+    print(f"Compatibilità: 100% con client ottimizzati")
+
+    return model
+
+# MODELLO SERVER FALLBACK
+def create_server_model_fallback(input_shape: int) -> keras.Model:
+
+    config = ServerConfig()
     tf.random.set_seed(config.RANDOM_SEED)
     np.random.seed(config.RANDOM_SEED)
+    
+    # L2 regularization
+    l2_reg = keras.regularizers.L2(config.L2_REG)
     
     model = keras.Sequential([
         keras.layers.Input(shape=(input_shape,), name="input_features"),
         
-        # IDENTICA architettura al client
+        # Architettura
         keras.layers.Dense(
-            config.HIDDEN_LAYERS[0], 
+            config.HIDDEN_LAYERS[0],
             activation="relu",
-            kernel_initializer=keras.initializers.GlorotUniform(seed=config.RANDOM_SEED),
+            kernel_regularizer=l2_reg,
+            kernel_initializer=keras.initializers.HeNormal(seed=config.RANDOM_SEED),
             name="dense_1"
         ),
         keras.layers.BatchNormalization(name="batch_norm_1"),
         keras.layers.Dropout(config.DROPOUT_RATES[0], seed=config.RANDOM_SEED, name="dropout_1"),
         
         keras.layers.Dense(
-            config.HIDDEN_LAYERS[1], 
+            config.HIDDEN_LAYERS[1],
             activation="relu",
-            kernel_initializer=keras.initializers.GlorotUniform(seed=config.RANDOM_SEED+1),
+            kernel_regularizer=l2_reg,
+            kernel_initializer=keras.initializers.HeNormal(seed=config.RANDOM_SEED+1),
             name="dense_2"
         ),
         keras.layers.BatchNormalization(name="batch_norm_2"),
         keras.layers.Dropout(config.DROPOUT_RATES[1], seed=config.RANDOM_SEED+1, name="dropout_2"),
         
         keras.layers.Dense(
-            config.HIDDEN_LAYERS[2], 
+            config.HIDDEN_LAYERS[2],
             activation="relu",
-            kernel_initializer=keras.initializers.GlorotUniform(seed=config.RANDOM_SEED+2),
+            kernel_regularizer=l2_reg,
+            kernel_initializer=keras.initializers.HeNormal(seed=config.RANDOM_SEED+2),
             name="dense_3"
         ),
         keras.layers.BatchNormalization(name="batch_norm_3"),
         keras.layers.Dropout(config.DROPOUT_RATES[2], seed=config.RANDOM_SEED+2, name="dropout_3"),
         
         keras.layers.Dense(
+            config.HIDDEN_LAYERS[3],
+            activation="relu",
+            kernel_regularizer=l2_reg,
+            kernel_initializer=keras.initializers.HeNormal(seed=config.RANDOM_SEED+3),
+            name="dense_4"
+        ),
+        keras.layers.BatchNormalization(name="batch_norm_4"),
+        keras.layers.Dropout(config.DROPOUT_RATES[3], seed=config.RANDOM_SEED+3, name="dropout_4"),
+        
+        keras.layers.Dense(
             1, 
             activation="sigmoid",
-            kernel_initializer=keras.initializers.GlorotUniform(seed=config.RANDOM_SEED+3),
+            kernel_initializer=keras.initializers.GlorotUniform(seed=config.RANDOM_SEED+4),
             name="output"
         )
     ], name="SmartGrid_Server_Model")
     
-    # IDENTICA compilation al client
+    # Otimizzatore
+    optimizer = keras.optimizers.Adam(
+        learning_rate=config.LEARNING_RATE,
+        beta_1=0.9,
+        beta_2=0.999,
+        epsilon=1e-7,
+        clipnorm=1.0
+    )
+    
     model.compile(
-        optimizer=keras.optimizers.Adam(learning_rate=config.LEARNING_RATE),
+        optimizer=optimizer,
         loss=keras.losses.BinaryCrossentropy(),
         metrics=[
             "accuracy",
@@ -222,33 +484,29 @@ def create_hybrid_server_model_v25(input_shape: int) -> keras.Model:
         ]
     )
     
-    print(f"🧠 Server Model creato:")
-    print(f"   - Architettura: {config.HIDDEN_LAYERS[0]}→{config.HIDDEN_LAYERS[1]}→{config.HIDDEN_LAYERS[2]}→1")
-    print(f"   - Input shape: {input_shape}")
-    print(f"   - Weight tensors: {len(model.get_weights())}")
-    print(f"   - Compatibilità: 100% con client")
-    
+    print(f"Server Model fallback creato:")
+    print(f"Architettura: {config.HIDDEN_LAYERS[0]}→{config.HIDDEN_LAYERS[1]}→{config.HIDDEN_LAYERS[2]}→{config.HIDDEN_LAYERS[3]}→1")
+    print(f"Input shape: {input_shape}")
+    print(f"Learning Rate: {config.LEARNING_RATE:.6f}")
+    print(f"Parametri: {model.count_params():,}")
+    print(f"Compatibilità: 100%")
+
     return model
 
-# ============================================================================
-# 📊 ADVANCED METRICS AGGREGATION
-# ============================================================================
+# ADVANCED METRICS AGGREGATION
+def weighted_average(metrics):
 
-def weighted_average_hybrid_v25(metrics):
-    """Aggregazione metriche."""
     if not metrics:
         return {}
     
+    print(f"Aggregating EVALUATE metrics from {len(metrics)} clients...")
+    
     metrics_sum = {}
     total_examples = 0
-    threshold_opt_count = 0
     
-    for num_examples, metrics_dict in metrics:
+    for i, (num_examples, metrics_dict) in enumerate(metrics):
         total_examples += num_examples
-        
-        # Conta client con threshold optimization
-        if metrics_dict.get('threshold_optimization_success', False):
-            threshold_opt_count += 1
+        print(f"Client {i+1}: {num_examples} samples, EVALUATE metrics: {list(metrics_dict.keys())}")
         
         for key, value in metrics_dict.items():
             if key not in metrics_sum:
@@ -263,19 +521,19 @@ def weighted_average_hybrid_v25(metrics):
         if total_examples > 0:
             aggregated[key] = value / total_examples
     
-    # Aggiungi meta-statistiche
+    # Meta-statistiche
     aggregated['total_clients'] = len(metrics)
     aggregated['total_samples'] = total_examples
-    aggregated['threshold_optimization_clients'] = threshold_opt_count
-    
+
+    print(f"EVALUATE metrics aggregated: {list(aggregated.keys())}")
     return aggregated
 
-def print_client_metrics_hybrid_v25(fit_results):
-    """Stampa metriche client."""
+def print_client_metrics(fit_results):
+    """Stampa metriche client"""
     if not fit_results:
         return
-    
-    print(f"\n=== METRICHE CLIENT ===")
+
+    print(f"\nMETRICHE CLIENT")
     
     total_samples = 0
     total_train_acc = 0
@@ -287,120 +545,207 @@ def print_client_metrics_hybrid_v25(fit_results):
         
         total_samples += client_samples
         
-        print(f"Client {i+1} (v2.5):")
-        print(f"  - Campioni: {client_samples}")
+        print(f"Client {i+1} :")
+        print(f"Campioni: {client_samples}")
         
         if 'train_accuracy' in client_metrics:
             train_acc = client_metrics['train_accuracy']
             total_train_acc += train_acc * client_samples
-            print(f"  - Train Acc: {train_acc:.4f}")
+            print(f"Train Acc: {train_acc:.4f}")
         
         if 'val_accuracy' in client_metrics:
             val_acc = client_metrics['val_accuracy']
             total_val_acc += val_acc * client_samples
-            print(f"  - Val Acc: {val_acc:.4f}")
-        
-        if 'statistical_features_count' in client_metrics:
-            stat_features = client_metrics['statistical_features_count']
-            print(f"  - 🔧 Statistical features: {stat_features}")
+            print(f"Val Acc: {val_acc:.4f}")
         
         if 'total_features' in client_metrics:
             total_features = client_metrics['total_features']
-            print(f"  - 📊 Total features: {total_features}")
+            print(f"Total features: {total_features}")
+
+        if 'architecture_type' in client_metrics:
+            arch_type = client_metrics['architecture_type']
+            print(f"Architecture: {arch_type}")
     
     # Statistiche aggregate
     if total_samples > 0:
         avg_train_acc = total_train_acc / total_samples
         avg_val_acc = total_val_acc / total_samples
         
-        print(f"\n=== STATISTICHE AGGREGATE ===")
+        print(f"\nSTATISTICHE AGGREGATE OTTIMIZZATE")
         print(f"Media Train Accuracy: {avg_train_acc:.4f}")
         print(f"Media Val Accuracy: {avg_val_acc:.4f}")
         print(f"Gap Train-Val: {avg_train_acc - avg_val_acc:.4f}")
     
     print("=" * 60)
 
-# ============================================================================
-# 🚀 FEDERATED STRATEGY
-# ============================================================================
-
-class HybridFedAvgV25(FedAvg):
-    """Strategia FedAvg con initial parameters."""
+# FEDERATED STRATEGY (FedAvg)
+class Strategy(FedAvg):
     
     def __init__(self, **kwargs):
         # Genera parametri iniziali per evitare GrpcBridgeClosed
-        self.initial_parameters = self._generate_initial_parameters()
+        self.initial_parameters = self.generate_initial_parameters()
         super().__init__(**kwargs)
     
-    def _generate_initial_parameters(self):
+    def generate_initial_parameters(self):
         """Genera parametri iniziali per il modello."""
-        print("🔧 Generazione parametri iniziali server...")
+        print("Generazione parametri iniziali server ottimizzati...")
         
-        config = HybridServerConfig()
-        temp_model = create_hybrid_server_model_v25(input_shape=config.TOTAL_FEATURES)
+        config = ServerConfig()
+        
+        # PROVA PRIMA MODELLO OTTIMIZZATO
+        try:
+            temp_model = create_server_model(input_shape=config.TOTAL_FEATURES)
+            print(f"Usando modello ottimizzato per parametri iniziali")
+        except Exception as e:
+            print(f"Fallback al modello manuale: {e}")
+            temp_model = create_server_model_fallback(input_shape=config.TOTAL_FEATURES)
+            
         initial_weights = temp_model.get_weights()
         
-        print(f"   - Parametri generati: {len(initial_weights)} tensori")
-        print(f"   - Compatibilità: Client")
+        print(f"Parametri generati: {len(initial_weights)} tensori")
+        print(f"Compatibilità: Client ottimizzati")
         
         return fl.common.ndarrays_to_parameters(initial_weights)
     
     def initialize_parameters(self, client_manager):
-        """Restituisce parametri iniziali."""
-        print("🔧 Inizializzazione parametri server")
+        """Restituisce parametri iniziali"""
+        print("Inizializzazione parametri server ottimizzati")
         return self.initial_parameters
     
     def aggregate_fit(self, server_round, results, failures):
-        """Aggregazione con metriche."""
-        print(f"\n=== AGGREGAZIONE ROUND {server_round} ===")
+        """Aggregazione con metriche e early stopping su val_loss"""
+        print(f"\n=== AGGREGAZIONE FIT OTTIMIZZATO ROUND {server_round} ===")
         print(f"Client partecipanti: {len(results)}")
         print(f"Client falliti: {len(failures)}")
         
         if failures:
-            print("❌ Fallimenti:")
+            print("Fallimenti:")
             for failure in failures:
                 print(f"  - {failure}")
+
+        print_client_metrics(results)
+
+        # AGGREGAZIONE MANUALE DELLE METRICHE FIT
+        fit_metrics = []
+        for client_proxy, fit_res in results:
+            if hasattr(fit_res, 'metrics') and fit_res.metrics:
+                fit_metrics.append((fit_res.num_examples, fit_res.metrics))
+                # DEBUG LEARNING RATE
+                if 'learning_rate' in fit_res.metrics:
+                    print(f"Client {fit_res.metrics.get('client_id', '?')} LR: {fit_res.metrics['learning_rate']:.6f}")
+                print(f"Client {fit_res.metrics.get('client_id', '?')} FIT metrics: {list(fit_res.metrics.keys())}")
         
-        print_client_metrics_hybrid_v25(results)
+        # Aggrega manualmente le metriche FIT
+        aggregated_fit_metrics = {}
+        if fit_metrics:
+            aggregated_fit_metrics = self.aggregate_fit_metrics_manual(fit_metrics)
+            print(f"Aggregated FIT metrics: {list(aggregated_fit_metrics.keys())}")
         
+        # Chiama l'aggregazione standard dei parametri
         aggregated_result = super().aggregate_fit(server_round, results, failures)
         
         if aggregated_result is not None:
-            print(f"✅ Aggregazione completata per round {server_round}")
+            parameters, _ = aggregated_result  # Ignora le metriche standard
+            
+            # EARLY STOPPING QUI SU VAL_LOSS DAI CLIENT
+            global GLOBAL_EARLY_STOPPING
+            if GLOBAL_EARLY_STOPPING is not None and aggregated_fit_metrics:
+                should_stop = GLOBAL_EARLY_STOPPING.update(server_round, aggregated_fit_metrics)
+                
+                if should_stop:
+                    print(f"!!! FEDERATED EARLY STOPPING ACTIVATED")
+                    print(f"Validation Loss stopped improving at round {server_round}")
+                    print(f"Best validation loss: {GLOBAL_EARLY_STOPPING.best_score:.6f} at round {GLOBAL_EARLY_STOPPING.best_round}")
+                    aggregated_fit_metrics.update(GLOBAL_EARLY_STOPPING.get_summary())
+                    
+                    # Forza stop con eccezione
+                    raise KeyboardInterrupt(f"Federated Early Stopping triggered at round {server_round}")
+            
+            print(f"Aggregazione fit ottimizzata completata per round {server_round}")
+            return parameters, aggregated_fit_metrics
         else:
-            print(f"❌ Aggregazione fallita per round {server_round}")
+            print(f"Aggregazione fit fallita per round {server_round}")
+            return aggregated_result
+    
+    def aggregate_fit_metrics_manual(self, metrics):
+        """Aggregazione manuale delle metriche FIT (separata da evaluate)"""
+        if not metrics:
+            print("No FIT metrics to aggregate")
+            return {}
         
+        print(f"Aggregating FIT metrics from {len(metrics)} clients...")
+        
+        metrics_sum = {}
+        total_examples = 0
+        
+        for i, (num_examples, metrics_dict) in enumerate(metrics):
+            total_examples += num_examples
+            print(f"Client {i+1}: {num_examples} samples, FIT metrics: {list(metrics_dict.keys())}")
+            
+            for key, value in metrics_dict.items():
+                if key not in metrics_sum:
+                    metrics_sum[key] = 0
+                
+                if isinstance(value, (int, float)) and not np.isnan(value) and not np.isinf(value):
+                    metrics_sum[key] += num_examples * value
+                    if key == 'val_loss':
+                        print(f" -> val_loss: {value:.6f}")
+        
+        # Calcola medie pesate
+        aggregated = {}
+        for key, value in metrics_sum.items():
+            if total_examples > 0:
+                aggregated[key] = value / total_examples
+        
+        # DEBUG PER VALIDATION LOSS
+        if 'val_loss' in aggregated:
+            print(f"Aggregated FIT Validation Loss: {aggregated['val_loss']:.6f}")
+        else:
+            print(f"val_loss not found in FIT aggregated metrics")
+            print(f"Available FIT metrics: {list(aggregated.keys())}")
+
+        aggregated['total_clients'] = len(metrics)
+        aggregated['total_samples'] = total_examples
+
+        return aggregated
+    
+    def aggregate_evaluate(self, server_round, results, failures):
+        """Aggregazione evaluate (SOLO PER EVALUATE, SENZA EARLY STOPPING)"""
+        print(f"\n=== AGGREGATE_EVALUATE OTTIMIZZATO ROUND {server_round} (NO EARLY STOPPING) ===")
+        aggregated_result = super().aggregate_evaluate(server_round, results, failures)
         return aggregated_result
 
-# ============================================================================
-# 🔧 GLOBAL EVALUATION FUNCTION
-# ============================================================================
+# VALUTAZIONE GLOBALE OTTIMIZZATA
+def get_evaluate():
+    global GLOBAL_EARLY_STOPPING
 
-def get_hybrid_evaluate_fn_v25():
-    """Funzione di valutazione globale."""
-    
     # Carica dati globali
     try:
-        X_global, y_global = load_hybrid_server_data_v25()
+        X_global, y_global = load_server_data()
         input_shape = X_global.shape[1]
     except Exception as e:
-        print(f"❌ Errore caricamento dati server: {e}")
-        X_global = np.random.random((100, 42))
+        print(f"Errore caricamento dati server: {e}")
+        X_global = np.random.random((100, 20))
         y_global = np.random.randint(0, 2, 100)
-        input_shape = 42
-        print("⚠️ Usando dati fittizi per server")
+        input_shape = 20
+        print("Usando dati fittizi per server")
     
     def evaluate(server_round, parameters, config):
-        """Valutazione globale."""
-        print(f"\n=== VALUTAZIONE GLOBALE ROUND {server_round} ===")
+        """Valutazione globale ottimizzata con early stopping"""
+        print(f"\n=== VALUTAZIONE GLOBALE OTTIMIZZATA ROUND {server_round} ===")
         
         try:
-            # Crea modello identico ai client
-            model = create_hybrid_server_model_v25(input_shape)
+            # PROVA PRIMA MODELLO OTTIMIZZATO
+            try:
+                model = create_server_model(input_shape)
+                print(f"Usando modello ottimizzato per valutazione")
+            except Exception as e:
+                print(f"Fallback al modello manuale per valutazione: {e}")
+                model = create_server_model_fallback(input_shape)
             
             # Verifica compatibilità pesi
             if len(parameters) != len(model.get_weights()):
-                print(f"⚠️ Incompatibilità pesi: ricevuti {len(parameters)}, attesi {len(model.get_weights())}")
+                print(f"Incompatibilità pesi: ricevuti {len(parameters)}, attesi {len(model.get_weights())}")
                 return 1.0, {"error": "weight_mismatch", "global_samples": 0}
             
             model.set_weights(parameters)
@@ -411,7 +756,7 @@ def get_hybrid_evaluate_fn_v25():
             
             # Predizioni per analisi dettagliata
             y_pred_prob = model.predict(X_global, verbose=0).flatten()
-            y_pred_binary = (y_pred_prob > 0.72).astype(int)
+            y_pred_binary = (y_pred_prob > 0.5).astype(int)
             
             # Matrice confusione
             tn, fp, fn, tp = confusion_matrix(y_global, y_pred_binary).ravel()
@@ -425,7 +770,7 @@ def get_hybrid_evaluate_fn_v25():
             except Exception:
                 auc_roc_manual = 0.5
 
-            print(f"🔧 RISULTATI GLOBALI:")
+            print(f"RISULTATI GLOBALI OTTIMIZZATI:")
             print(f"  - Loss: {loss:.4f}")
             print(f"  - Accuracy: {accuracy:.4f} ({accuracy*100:.1f}%)")
             print(f"  - Precision: {precision:.4f} ({precision*100:.1f}%)")
@@ -434,17 +779,18 @@ def get_hybrid_evaluate_fn_v25():
             print(f"  - AUC-ROC: {auc_roc_manual:.4f} ({auc_roc_manual*100:.1f}%)")
             print(f"  - Specificity: {specificity:.4f} ({specificity*100:.1f}%)")
             print(f"  - Sensitivity: {sensitivity:.4f} ({sensitivity*100:.1f}%)")
-            print(f"📊 Confusione: TN={tn}, FP={fp}, FN={fn}, TP={tp}")
+            print(f" Confusione: TN={tn}, FP={fp}, FN={fn}, TP={tp}")
             
-            # Valutazione vs obiettivi v2.5
-            auc_vs_v1 = auc_roc_manual - 0.52  # v1 baseline
-            acc_vs_v1 = accuracy - 0.687       # v1 baseline
-            f1_vs_v1 = f1 - 0.817              # v1 baseline
+            # Valutazione vs obiettivi ottimizzati
+            """
+            auc_vs_baseline = auc_roc_manual - 0.52  # baseline
+            acc_vs_baseline = accuracy - 0.687       # baseline
+            f1_vs_baseline = f1 - 0.817              # baseline
             
-            print(f"📈 PROGRESSO vs v1 baseline:")
-            print(f"  - AUC: {auc_roc_manual:.4f} (Δ{auc_vs_v1:+.3f}, target +0.03)")
-            print(f"  - Acc: {accuracy:.4f} (Δ{acc_vs_v1:+.3f}, target +0.013)")
-            print(f"  - F1:  {f1:.4f} (Δ{f1_vs_v1:+.3f}, target +0.013)")
+            print(f"📈 PROGRESSO vs baseline:")
+            print(f"  - AUC: {auc_roc_manual:.4f} (Δ{auc_vs_baseline:+.3f})")
+            print(f"  - Acc: {accuracy:.4f} (Δ{acc_vs_baseline:+.3f})")
+            print(f"  - F1:  {f1:.4f} (Δ{f1_vs_baseline:+.3f})")
             
             # Valutazione successo
             success_score = 0
@@ -464,8 +810,8 @@ def get_hybrid_evaluate_fn_v25():
             
             print(f"🎯 Valutazione: {quality} ({success_score}/4 obiettivi)")
             print("=" * 70)
-            sys.stdout.flush()
-            
+            """
+
             return float(loss), {
                 "global_accuracy": float(accuracy),
                 "global_precision": float(precision),
@@ -475,65 +821,72 @@ def get_hybrid_evaluate_fn_v25():
                 "global_specificity": float(specificity),
                 "global_sensitivity": float(sensitivity),
                 "global_samples": int(len(X_global)),
-                "auc_improvement_vs_v1": float(auc_vs_v1),
-                "accuracy_improvement_vs_v1": float(acc_vs_v1),
-                "f1_improvement_vs_v1": float(f1_vs_v1),
-                "success_score": int(success_score),
+                # "auc_improvement_vs_baseline": float(auc_vs_baseline),
+                # "accuracy_improvement_vs_baseline": float(acc_vs_baseline),
+                # "f1_improvement_vs_baseline": float(f1_vs_baseline),
+                # "success_score": int(success_score),
             }
             
         except Exception as e:
-            print(f"❌ Errore valutazione globale: {e}")
+            print(f"Errore valutazione globale ottimizzata: {e}")
             import traceback
             traceback.print_exc()
             return 1.0, {"error": str(e), "global_samples": 0}
     
     return evaluate
 
-# ============================================================================
-# 🚀 MAIN FUNCTION
-# ============================================================================
-
+# MAIN FUNCTION
 def main():
-    """Avvia server federato."""
-    print(f"\n🚀 AVVIO SERVER FEDERATO")
+
+    global GLOBAL_EARLY_STOPPING
+    
+    print(f"\nAVVIO SERVER FEDERATO OTTIMIZZATO")
     print("=" * 80)
-    print("📋 CONFIGURAZIONE:")
-    print("   - Base: v1 (architettura stabile 128→64→32→1)")
-    print("   - Enhancement: Threshold optimization v3")
-    print("   - Features: 30 PCA + 12 statistical = 42 totali")
-    print("   - Rounds: 10")
-    print("   - Preprocessing: StandardScaler + PCA (testato)")
-    print("   - Compatibilità: Client")
-    print("   - Dataset globale: Client 14-15")
-    print("   - Inizializzazione: Parametri autonomi (no GrpcBridgeClosed)")
+    print("CONFIGURAZIONE OTTIMIZZATA:")
+    print("   - Architettura: Ottimizzata per SmartGrid")
+    print("   - Rounds: 100")
     print("=" * 80)
-    print("🎯 OBIETTIVI v2.5:")
-    print("   - AUC-ROC: 52% → 55%+ (miglioramento graduale)")
-    print("   - Accuracy: 68.7% → 70%+")
-    print("   - F1-Score: 81.7% → 83%+")
-    print("   - Specificity: 0% → 15%+ (fix problema v4)")
+    print("PARAMETRI OPTUNA:")
+    print("   - Learning Rate: Ottimizzato")
+    print("   - Architettura: Ottimizzata")
+    print("   - Regularization: Ottimizzata")
+    print("   - Optimizer: Ottimizzato")
+    print("   - Activation: Ottimizzata")
     print("=" * 80)
     
-    config = HybridServerConfig()
+    config = ServerConfig()
 
-    # Strategia con parametri iniziali
-    strategy = HybridFedAvgV25(
+    # Inizializza early stopping globale
+    if config.ENABLE_FEDERATED_EARLY_STOPPING:
+        GLOBAL_EARLY_STOPPING = FederatedEarlyStopping(
+            monitor=config.FEDERATED_MONITOR,
+            min_delta=config.FEDERATED_MIN_DELTA,
+            patience=config.FEDERATED_PATIENCE,
+            mode=config.FEDERATED_MODE,
+            min_rounds=config.FEDERATED_MIN_ROUNDS
+        )
+        print(f"Global Early Stopping ENABLED!")
+    else:
+        print(f"Global Early Stopping DISABLED!")
+
+    # Strategia con parametri iniziali ottimizzati
+    strategy = Strategy(
         fraction_fit=1.0,
         fraction_evaluate=1.0,
         min_fit_clients=config.MIN_CLIENTS,
         min_evaluate_clients=config.MIN_CLIENTS,
         min_available_clients=config.MIN_CLIENTS,
-        evaluate_fn=get_hybrid_evaluate_fn_v25(),
-        evaluate_metrics_aggregation_fn=weighted_average_hybrid_v25,
+        evaluate_fn=get_evaluate(),
+        evaluate_metrics_aggregation_fn=weighted_average,
     )
     
     server_config = fl.server.ServerConfig(num_rounds=config.NUM_ROUNDS)
     
-    print("🔗 Server pronto!")
-    print("Connettere client")
+    print("Server ottimizzato pronto!")
+    print("Connettere client ottimizzati")
     print("\nIl training inizierà quando almeno 2 client saranno connessi.")
+    print("I client useranno automaticamente i parametri ottimizzati!")
     print("=" * 80)
-    sys.stdout.flush()
     
     try:
         fl.server.start_server(
@@ -543,9 +896,9 @@ def main():
         )
         
     except KeyboardInterrupt:
-        print(f"\n🛑 Server fermato dall'utente")
+        print(f"\nServer ottimizzato fermato dall'utente")
     except Exception as e:
-        print(f"❌ Errore durante l'avvio del server: {e}")
+        print(f"Errore durante l'avvio del server ottimizzato: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
