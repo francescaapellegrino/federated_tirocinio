@@ -19,16 +19,16 @@ from typing import Dict, Any, Tuple
 import warnings
 warnings.filterwarnings('ignore')
 
-from optimized_config_20250822_165443 import OptimizedConfig
+from optimized_config_20250824_193626 import OptimizedConfig
 
-# CONFIGURAZIONE CLIENT
+# CONFIGURAZIONE CLIENT (in caso di errore modello ottimizzato)
 class ClientConfig:
 
     # Architettura modello
-    HIDDEN_LAYERS = [96, 48, 24, 8]   # numero neuroni per layer
-    DROPOUT_RATES = [0.300, 0.100, 0.400, 0.100]
-    LEARNING_RATE = 0.0012246410   # tasso di apprendimento
-    L2_REG = 0.0000997142   # fattore di regolarizzazione L2 che penalizza i pesi grandi
+    HIDDEN_LAYERS = [208, 48, 52, 22]   # numero neuroni per layer
+    DROPOUT_RATES = [0.250, 0.500, 0.250, 0.450]
+    LEARNING_RATE = 0.0032895272   # tasso di apprendimento
+    L2_REG = 0.0000539478   # fattore di regolarizzazione L2 che penalizza i pesi grandi
     
     # Training parameters
     EPOCHS_PER_ROUND = 15

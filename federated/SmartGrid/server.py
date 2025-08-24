@@ -3,6 +3,7 @@ Server federato SmartGrid
 Francesca Pellegrino
 """
 
+from datetime import datetime
 import flwr as fl
 from flwr.server.strategy import FedAvg
 import tensorflow as tf
@@ -19,18 +20,193 @@ from typing import Dict, List, Tuple, Any
 import warnings
 warnings.filterwarnings('ignore')
 
-from optimized_config_20250822_165443 import OptimizedConfig
+from optimized_config_20250824_193626 import OptimizedConfig
+GLOBAL_METRICS_TRACKER = None
 
+# TRACKER PER LE METRICHE
+class CompleteMetricsTracker:
+    
+    def __init__(self):
+        self.round_metrics = {}  # Dizionario: {round_num: {metriche}}
+        self.target_metrics = [
+            'val_loss',
+            'global_accuracy',
+            'global_precision', 
+            'global_recall',
+            'global_f1_score',
+            'global_auc_roc',
+            'global_specificity',
+            'global_sensitivity'
+        ]
+        
+        # Path del file di output
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.output_file = os.path.join(script_dir, f"metrics_complete_report_{timestamp}.txt")
+        
+        print(f"CompleteMetricsTracker inizializzato: {self.output_file}")
+    
+    def add_round_metrics(self, round_num: int, fit_metrics: Dict = None, evaluate_metrics: Dict = None):
+        """Aggiunge metriche per un round specifico"""
+        try:
+            # Inizializza round
+            if round_num not in self.round_metrics:
+                self.round_metrics[round_num] = {
+                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'val_loss': None,
+                    'global_accuracy': None,
+                    'global_precision': None,
+                    'global_recall': None,
+                    'global_f1_score': None,
+                    'global_auc_roc': None,
+                    'global_specificity': None,
+                    'global_sensitivity': None
+                }
+            
+            # Aggiungi val_loss dai client (fit_metrics)
+            if fit_metrics and 'val_loss' in fit_metrics:
+                self.round_metrics[round_num]['val_loss'] = fit_metrics['val_loss']
+            
+            # Aggiungi metriche globali dal server (evaluate_metrics)
+            if evaluate_metrics:
+                for metric in ['global_accuracy', 'global_precision', 'global_recall', 
+                              'global_f1_score', 'global_auc_roc', 'global_specificity', 'global_sensitivity']:
+                    if metric in evaluate_metrics:
+                        self.round_metrics[round_num][metric] = evaluate_metrics[metric]
+            
+            # Debug
+            available_metrics = [k for k, v in self.round_metrics[round_num].items() 
+                               if v is not None and k != 'timestamp']
+            print(f"Round {round_num}: {len(available_metrics)} metriche salvate")
+            
+        except Exception as e:
+            print(f"Errore salvataggio round {round_num}: {e}")
+    
+    def generate_final_report(self):
+        """Genera il resoconto finale completo."""
+        try:
+            if not self.round_metrics:
+                print("Nessuna metrica da salvare")
+                return
+            
+            with open(self.output_file, 'w', encoding='utf-8') as f:
+                # Header
+                f.write("RESOCONTO ADDESTRAMENTO FEDERATO SMARTGRID\n")
+                f.write(f"Francesca Pellegrino\n")
+                f.write(f"Rounds totali: {len(self.round_metrics)}\n")
+                
+                # Tabella riassuntiva
+                self._write_summary_table(f)
+                
+                # Statistiche finali
+                self._write_final_statistics(f)
+            
+            print(f"Resoconto completo generato: {self.output_file}")
+            print(f"Rounds tracciati: {len(self.round_metrics)}")
+            
+        except Exception as e:
+            print(f"Errore generazione resoconto: {e}")
+    
+    def _write_summary_table(self, f):
+        """Scrive tabella riassuntiva."""
+        f.write("TABELLA RIASSUNTIVA METRICHE:\n")
+        f.write("=" * 120 + "\n")
+        
+        # Header tabella
+        header = f"{'Round':<6} {'Loss':<10} {'Accuracy':<10} {'Precision':<11} {'Recall':<10} {'F1_Score':<10} {'AUC_ROC':<10} {'Specificity':<10} {'Sensitivity':<10}"
+        f.write(header + "\n")
+        f.write("-" * 120 + "\n")
+        
+        # Righe dati
+        for round_num in sorted(self.round_metrics.keys()):
+            metrics = self.round_metrics[round_num]
+            
+            val_loss = f"{metrics['val_loss']:.6f}" if metrics['val_loss'] is not None else "N/A"
+            accuracy = f"{metrics['global_accuracy']:.6f}" if metrics['global_accuracy'] is not None else "N/A"
+            precision = f"{metrics['global_precision']:.6f}" if metrics['global_precision'] is not None else "N/A"
+            recall = f"{metrics['global_recall']:.6f}" if metrics['global_recall'] is not None else "N/A"
+            f1_score = f"{metrics['global_f1_score']:.6f}" if metrics['global_f1_score'] is not None else "N/A"
+            auc_roc = f"{metrics['global_auc_roc']:.6f}" if metrics['global_auc_roc'] is not None else "N/A"
+            specificity = f"{metrics['global_specificity']:.6f}" if metrics['global_specificity'] is not None else "N/A"
+            sensitivity = f"{metrics['global_sensitivity']:.6f}" if metrics['global_sensitivity'] is not None else "N/A"
+            
+            row = f"{round_num:<6} {val_loss:<10} {accuracy:<10} {precision:<11} {recall:<10} {f1_score:<10} {auc_roc:<10} {specificity:<10} {sensitivity:<10}"
+            f.write(row + "\n")
+        
+        f.write("=" * 120 + "\n\n")
+    
+    def _write_final_statistics(self, f):
+        """Scrive statistiche finali."""
+        f.write("STATISTICHE FINALI:\n")
+        f.write("=" * 60 + "\n")
+        
+        # Calcola statistiche per ogni metrica
+        metrics_stats = {}
+        
+        for metric in ['val_loss', 'global_accuracy', 'global_precision', 'global_recall', 
+                      'global_f1_score', 'global_auc_roc', 'global_specificity', 'global_sensitivity']:
+            values = [self.round_metrics[r][metric] for r in self.round_metrics 
+                     if self.round_metrics[r][metric] is not None]
+            
+            if values:
+                metrics_stats[metric] = {
+                    'count': len(values),
+                    'first': values[0],
+                    'last': values[-1],
+                    'min': min(values),
+                    'max': max(values),
+                    'avg': sum(values) / len(values),
+                    'improvement': values[-1] - values[0] if len(values) > 1 else 0
+                }
+        
+        # Scrivi statistiche
+        for metric, stats in metrics_stats.items():
+            f.write(f"\n🔹 {metric.upper()}:\n")
+            f.write(f"   Rounds disponibili  : {stats['count']}\n")
+            f.write(f"   Valore iniziale     : {stats['first']:.6f}\n")
+            f.write(f"   Valore finale       : {stats['last']:.6f}\n")
+            f.write(f"   Valore minimo       : {stats['min']:.6f}\n")
+            f.write(f"   Valore massimo      : {stats['max']:.6f}\n")
+            f.write(f"   Valore medio        : {stats['avg']:.6f}\n")
+            if stats['improvement'] != 0:
+                direction = "📈" if stats['improvement'] > 0 else "📉"
+                f.write(f"   Miglioramento       : {stats['improvement']:+.6f} {direction}\n")
+        
+        # Best round per ogni metrica
+        f.write(f"\nMIGLIORI ROUND PER METRICA:\n")
+        f.write("-" * 40 + "\n")
+        
+        for metric, stats in metrics_stats.items():
+            if metric == 'val_loss':
+                # Per val_loss, il migliore è il minimo
+                best_value = stats['min']
+                best_round = None
+                for r, data in self.round_metrics.items():
+                    if data[metric] == best_value:
+                        best_round = r
+                        break
+            else:
+                # Per le altre metriche, il migliore è il massimo
+                best_value = stats['max']
+                best_round = None
+                for r, data in self.round_metrics.items():
+                    if data[metric] == best_value:
+                        best_round = r
+                        break
+            
+            if best_round is not None:
+                f.write(f"  {metric:<20}: Round {best_round} ({best_value:.6f})\n")
+        
+        f.write(f"\nADDESTRAMENTO COMPLETATO!\n")
 
-# CONFIGURAZIONE SERVER 
-
+# CONFIGURAZIONE SERVER (in caso di errore modello ottimizzato)
 class ServerConfig:
     
     # Architettura modello
-    HIDDEN_LAYERS = [96, 48, 24, 8]  # numero neuroni per layer
-    DROPOUT_RATES = [0.300, 0.100, 0.400, 0.100]
-    LEARNING_RATE = 0.0012246410    # tasso di apprendimento
-    L2_REG = 0.0000997142   # fattore di regolarizzazione L2 che penalizza i pesi grandi
+    HIDDEN_LAYERS = [208, 48, 52, 22]  # numero neuroni per layer
+    DROPOUT_RATES = [0.250, 0.500, 0.250, 0.450]
+    LEARNING_RATE = 0.0032895272    # tasso di apprendimento
+    L2_REG = 0.0000539478   # fattore di regolarizzazione L2 che penalizza i pesi grandi
     
     # Data preprocessing
     PCA_COMPONENTS = 30
@@ -38,7 +214,7 @@ class ServerConfig:
     TOTAL_FEATURES = 42
 
     # Server specific
-    NUM_ROUNDS = 100    # invio pesi, aggiornamento, aggregazione
+    NUM_ROUNDS = 200    # invio pesi, aggiornamento, aggregazione
     MIN_CLIENTS = 2
 
     ENABLE_FEDERATED_EARLY_STOPPING = False    # False: il training prosegue per tutti i round previsti
@@ -582,6 +758,11 @@ def print_client_metrics(fit_results):
 class Strategy(FedAvg):
     
     def __init__(self, **kwargs):
+
+        # Inizializza MetricsTracker
+        global GLOBAL_METRICS_TRACKER
+        GLOBAL_METRICS_TRACKER = CompleteMetricsTracker()
+
         # Genera parametri iniziali per evitare GrpcBridgeClosed
         self.initial_parameters = self.generate_initial_parameters()
         super().__init__(**kwargs)
@@ -647,6 +828,15 @@ class Strategy(FedAvg):
         if aggregated_result is not None:
             parameters, _ = aggregated_result  # Ignora le metriche standard
             
+            # SALVA METRICHE FIT NEL TRACKER
+            global GLOBAL_METRICS_TRACKER
+            if GLOBAL_METRICS_TRACKER and aggregated_fit_metrics:
+                GLOBAL_METRICS_TRACKER.add_round_metrics(
+                    round_num=server_round,
+                    fit_metrics=aggregated_fit_metrics,
+                    evaluate_metrics=None
+                )
+            
             # EARLY STOPPING QUI SU VAL_LOSS DAI CLIENT
             global GLOBAL_EARLY_STOPPING
             if GLOBAL_EARLY_STOPPING is not None and aggregated_fit_metrics:
@@ -663,12 +853,9 @@ class Strategy(FedAvg):
             
             print(f"Aggregazione fit ottimizzata completata per round {server_round}")
             return parameters, aggregated_fit_metrics
-        else:
-            print(f"Aggregazione fit fallita per round {server_round}")
-            return aggregated_result
     
     def aggregate_fit_metrics_manual(self, metrics):
-        """Aggregazione manuale delle metriche FIT (separata da evaluate)"""
+        """Aggregazione manuale delle metriche FIT"""
         if not metrics:
             print("No FIT metrics to aggregate")
             return {}
@@ -709,11 +896,54 @@ class Strategy(FedAvg):
 
         return aggregated
     
-    def aggregate_evaluate(self, server_round, results, failures):
-        """Aggregazione evaluate (SOLO PER EVALUATE, SENZA EARLY STOPPING)"""
-        print(f"\n=== AGGREGATE_EVALUATE OTTIMIZZATO ROUND {server_round} (NO EARLY STOPPING) ===")
-        aggregated_result = super().aggregate_evaluate(server_round, results, failures)
-        return aggregated_result
+def aggregate_evaluate(self, server_round, results, failures):
+    """Aggregazione evaluate con salvataggio metriche globali"""
+    print(f"\n=== AGGREGATE_EVALUATE OTTIMIZZATO ROUND {server_round} (NO EARLY STOPPING) ===")
+    
+    # Debug input
+    print(f"DEBUG AGGREGATE_EVALUATE Round {server_round}:")
+    print(f"results ricevuti: {len(results) if results else 0}")
+    print(f"failures: {len(failures) if failures else 0}")
+
+    aggregated_result = super().aggregate_evaluate(server_round, results, failures)
+    
+    # Debug aggregated_result
+    print(f"DEBUG aggregated_result:")
+    if aggregated_result is not None:
+        loss, metrics = aggregated_result
+        print(f" Loss: {loss:.6f}")
+        print(f"Metrics ricevute: {metrics is not None}")
+        if metrics:
+            print(f"Metrics keys: {list(metrics.keys())}")
+        else:
+            print(f"Metrics è None!")
+    else:
+        print(f"aggregated_result è None!")
+
+    # SALVA METRICHE EVALUATE NEL TRACKER
+    if aggregated_result is not None:
+        loss, metrics = aggregated_result
+        
+        global GLOBAL_METRICS_TRACKER
+        if GLOBAL_METRICS_TRACKER and metrics:
+            # Aggiunge loss alle metriche
+            eval_metrics = metrics.copy()
+            eval_metrics['global_loss'] = loss
+
+            print(f"DEBUG: Chiamata TRACKER con evaluate_metrics")
+            print(f"eval_metrics keys: {list(eval_metrics.keys())}")
+            
+            GLOBAL_METRICS_TRACKER.add_round_metrics(
+                round_num=server_round,
+                fit_metrics=None,
+                evaluate_metrics=eval_metrics
+            )
+        else:
+            print(f"DEBUG: NON chiamo tracker perché:")
+            print(f"GLOBAL_METRICS_TRACKER: {GLOBAL_METRICS_TRACKER is not None}")
+            print(f"metrics: {metrics is not None}")
+
+    return aggregated_result
 
 # VALUTAZIONE GLOBALE OTTIMIZZATA
 def get_evaluate():
@@ -732,6 +962,7 @@ def get_evaluate():
     
     def evaluate(server_round, parameters, config):
         """Valutazione globale ottimizzata con early stopping"""
+        print(f"\n🔥 DEBUG: EVALUATE CHIAMATA PER ROUND {server_round}")
         print(f"\n=== VALUTAZIONE GLOBALE OTTIMIZZATA ROUND {server_round} ===")
         
         try:
@@ -780,39 +1011,8 @@ def get_evaluate():
             print(f"  - Specificity: {specificity:.4f} ({specificity*100:.1f}%)")
             print(f"  - Sensitivity: {sensitivity:.4f} ({sensitivity*100:.1f}%)")
             print(f" Confusione: TN={tn}, FP={fp}, FN={fn}, TP={tp}")
-            
-            # Valutazione vs obiettivi ottimizzati
-            """
-            auc_vs_baseline = auc_roc_manual - 0.52  # baseline
-            acc_vs_baseline = accuracy - 0.687       # baseline
-            f1_vs_baseline = f1 - 0.817              # baseline
-            
-            print(f"📈 PROGRESSO vs baseline:")
-            print(f"  - AUC: {auc_roc_manual:.4f} (Δ{auc_vs_baseline:+.3f})")
-            print(f"  - Acc: {accuracy:.4f} (Δ{acc_vs_baseline:+.3f})")
-            print(f"  - F1:  {f1:.4f} (Δ{f1_vs_baseline:+.3f})")
-            
-            # Valutazione successo
-            success_score = 0
-            if auc_roc_manual >= 0.55: success_score += 1
-            if accuracy >= 0.70: success_score += 1
-            if f1 >= 0.83: success_score += 1
-            if specificity >= 0.15: success_score += 1
-            
-            if success_score >= 3:
-                quality = "🟢 OBIETTIVI RAGGIUNTI"
-            elif success_score >= 2:
-                quality = "🔵 BUONI PROGRESSI"
-            elif success_score >= 1:
-                quality = "🟡 MIGLIORAMENTI PARZIALI"
-            else:
-                quality = "🔴 OBIETTIVI MANCATI"
-            
-            print(f"🎯 Valutazione: {quality} ({success_score}/4 obiettivi)")
-            print("=" * 70)
-            """
 
-            return float(loss), {
+            eval_metrics = {
                 "global_accuracy": float(accuracy),
                 "global_precision": float(precision),
                 "global_recall": float(recall),
@@ -821,11 +1021,31 @@ def get_evaluate():
                 "global_specificity": float(specificity),
                 "global_sensitivity": float(sensitivity),
                 "global_samples": int(len(X_global)),
-                # "auc_improvement_vs_baseline": float(auc_vs_baseline),
-                # "accuracy_improvement_vs_baseline": float(acc_vs_baseline),
-                # "f1_improvement_vs_baseline": float(f1_vs_baseline),
-                # "success_score": int(success_score),
             }
+            
+            print(f"DEBUG: EVALUATE RITORNA METRICHE ROUND {server_round}")
+            print(f"Loss: {float(loss):.6f}")
+            print(f"Metriche keys: {list(eval_metrics.keys())}")
+            
+            # SALVA METRICHE DIRETTAMENTE NEL TRACKER
+            global GLOBAL_METRICS_TRACKER
+            if GLOBAL_METRICS_TRACKER:
+                # Aggiunge loss alle metriche
+                eval_metrics_with_loss = eval_metrics.copy()
+                eval_metrics_with_loss['global_loss'] = float(loss)
+                
+                print(f"DEBUG: Salvataggio diretto nel TRACKER Round {server_round}")
+                print(f"eval_metrics keys: {list(eval_metrics_with_loss.keys())}")
+                
+                GLOBAL_METRICS_TRACKER.add_round_metrics(
+                    round_num=server_round,
+                    fit_metrics=None,
+                    evaluate_metrics=eval_metrics_with_loss
+                )
+            else:
+                print(f"DEBUG: GLOBAL_METRICS_TRACKER è None!")
+
+            return float(loss), eval_metrics
             
         except Exception as e:
             print(f"Errore valutazione globale ottimizzata: {e}")
@@ -902,6 +1122,12 @@ def main():
         import traceback
         traceback.print_exc()
         sys.exit(1)
+    finally:
+        # GENERA RESOCONTO FINALE
+        global GLOBAL_METRICS_TRACKER
+        if GLOBAL_METRICS_TRACKER:
+            print(f"\nGenerazione resoconto finale...")
+            GLOBAL_METRICS_TRACKER.generate_final_report()
 
 if __name__ == "__main__":
     main()

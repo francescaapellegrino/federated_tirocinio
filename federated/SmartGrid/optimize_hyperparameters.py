@@ -57,7 +57,7 @@ class OptimizationConfig:
     NEURONS_MAX = 256
     
     # Fixed parameters
-    PCA_COMPONENTS = 30           # Come Cataldo
+    PCA_COMPONENTS = 30 
     RANDOM_SEED = 42
     EPOCHS = 15                   # Fixed per trial speed
     BATCH_SIZE = 32               # Fixed per trial speed
@@ -163,7 +163,7 @@ class OptimizedModelBuilder:
             tuple: (model, params_dict)
         """
         
-        # 🔬 IPERPARAMETRI DA OTTIMIZZARE CON OPTUNA
+        # IPERPARAMETRI DA OTTIMIZZARE CON OPTUNA
         params = {
             # Learning rate - range logaritmico per migliore esplorazione
             'learning_rate': trial.suggest_float(
@@ -181,7 +181,7 @@ class OptimizedModelBuilder:
                 log=True
             ),
             
-            # Architettura 4-layer (come Cataldo ma ottimizzata)
+            # Architettura 4-layer
             'layer1_neurons': trial.suggest_int(
                 'layer1_neurons', 
                 64, 256, step=16
@@ -624,7 +624,7 @@ def optimize_smartgrid_hyperparameters():
         objective = SmartGridObjective(X_train, X_val, y_train, y_val, config)
         
         print(f"\n🚀 Avvio ottimizzazione...")
-        print(f"🎯 Obiettivo: Massimizzare {config.OBJECTIVE_METRIC}")
+        print(f"🎯 Obiettivo: Minimizzare {config.OBJECTIVE_METRIC}")
         print(f"⏰ Timeout: {config.TIMEOUT_HOURS} ore")
         
         # Esegui ottimizzazione
@@ -688,32 +688,24 @@ def optimize_smartgrid_hyperparameters():
         traceback.print_exc()
         return None, None
 
-# ============================================================================
-# 📝 CODE GENERATOR  
-# ============================================================================
-
+# GENERATORE CODICE PER IMPLEMENTARE I PARAMETRI OTTIMIZZATI
 def generate_implementation_code(best_params, timestamp, best_score=None):
     """
-    Genera codice per implementare i parametri ottimizzati.
-    
     Args:
         best_params: Dizionario parametri ottimali
         timestamp: Timestamp dell'ottimizzazione  
         best_score: Score migliore ottenuto (opzionale)
     """
-    
-    print(f"\n📝 Generazione codice implementazione...")
+    print(f"\nGenerazione codice implementazione...")
     
     # Genera config ottimizzata
-    config_code = f'''# ============================================================================
-# 🔬 CONFIGURAZIONE OTTIMIZZATA CON OPTUNA
+    config_code = f'''# CONFIGURAZIONE OTTIMIZZATA CON OPTUNA
 # Generata automaticamente il {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-# Utente: francescaapellegrino
+# Utente: Francesca Pellegrino
 # Timestamp: {timestamp}
-# ============================================================================
 
 class OptimizedConfig:
-    """Configurazione ottimizzata scientificamente con Optuna."""
+    """Configurazione ottimizzata scientificamente con Optuna"""
     
     # PARAMETRI OTTIMIZZATI SCIENTIFICAMENTE
     LEARNING_RATE = {best_params['learning_rate']:.10f}
@@ -732,7 +724,7 @@ class OptimizedConfig:
     BETA_1 = {best_params['beta_1']:.3f}
     BETA_2 = {best_params['beta_2']:.3f}
     CLIPNORM = {best_params['clipnorm']:.1f}
-    
+
     # PARAMETRI FISSI (COMPROVATI)
     PCA_COMPONENTS = 20
     EPOCHS_PER_ROUND = 15
@@ -742,14 +734,14 @@ class OptimizedConfig:
     # METADATA OTTIMIZZAZIONE
     OPTIMIZATION_TIMESTAMP = "{timestamp}"
     OPTIMIZATION_SCORE = {best_score if best_score is not None else 0.0:.6f}
-    OPTIMIZATION_METHOD = "optuna_tpe_sampler"
-    VERSION = "scientifically_optimized_v1"
+    OPTIMIZATION_METHOD = "optuna"
+    VERSION = "scientifically_optimized"
     OPTIMIZED_BY = "francescaapellegrino"
     
     # ARCHITETTURA RIASSUNTO
     ARCHITECTURE_SUMMARY = "{best_params['layer1_neurons']}→{best_params['layer2_neurons']}→{best_params['layer3_neurons']}→{best_params['layer4_neurons']}→1"
     TOTAL_FEATURES = 20  # PCA fisso
-'''
+    '''
     
     # Salva file 
     os.makedirs('optimization_results', exist_ok=True)
@@ -762,448 +754,7 @@ class OptimizedConfig:
     # ✅ FIX: Usa direttamente best_params invece di config
     architecture_summary = f"{best_params['layer1_neurons']}→{best_params['layer2_neurons']}→{best_params['layer3_neurons']}→{best_params['layer4_neurons']}→1"
     
-    # Genera codice implementazione per client
-    client_implementation = f'''
-# ============================================================================
-# 📋 CODICE IMPLEMENTAZIONE PER CLIENT.PY
-# Generato automaticamente da Optuna
-# ============================================================================
 
-# STEP 1: AGGIUNGI QUESTA IMPORT ALL'INIZIO DEL CLIENT.PY
-from optimized_config_{timestamp} import OptimizedConfig
-
-# STEP 2: SOSTITUISCI create_hybrid_model_v25() CON QUESTA VERSIONE OTTIMIZZATA
-def create_optimized_model_v26(input_shape: int):
-    """
-    Modello ottimizzato scientificamente con Optuna.
-    Parametri trovati su {datetime.now().strftime("%Y-%m-%d")} da francescaapellegrino.
-    """
-    import tensorflow as tf
-    import numpy as np
-    import keras
-    
-    tf.random.set_seed(42)
-    np.random.seed(42)
-    
-    # Configurazione ottimizzata
-    optimized_config = OptimizedConfig()
-    
-    # Funzione attivazione ottimizzata
-    if optimized_config.ACTIVATION_FUNCTION == 'leaky_relu':
-        activation_layer = lambda: keras.layers.LeakyReLU(alpha=0.1)
-        initializer = 'he_normal'
-    elif optimized_config.ACTIVATION_FUNCTION == 'selu':
-        activation_layer = lambda: keras.layers.Activation('selu')
-        initializer = 'lecun_normal'
-    elif optimized_config.ACTIVATION_FUNCTION == 'elu':
-        activation_layer = lambda: keras.layers.ELU(alpha=1.0)
-        initializer = 'he_normal'
-    else:  # relu
-        activation_layer = lambda: keras.layers.Activation('relu')
-        initializer = 'he_normal'
-    
-    # Architettura ottimizzata
-    model_layers = [
-        keras.layers.Input(shape=(input_shape,), name="input_features"),
-        
-        # Layer 1 ottimizzato
-        keras.layers.Dense(
-            optimized_config.HIDDEN_LAYERS[0], 
-            kernel_regularizer=keras.regularizers.L2(optimized_config.L2_REG),
-            kernel_initializer=initializer,
-            name="dense_1"
-        ),
-        activation_layer(),
-    ]
-    
-    if optimized_config.USE_BATCH_NORM:
-        model_layers.append(keras.layers.BatchNormalization(name="batch_norm_1"))
-    
-    model_layers.extend([
-        keras.layers.Dropout(optimized_config.DROPOUT_RATES[0], name="dropout_1"),
-        
-        # Layer 2 ottimizzato
-        keras.layers.Dense(
-            optimized_config.HIDDEN_LAYERS[1], 
-            kernel_regularizer=keras.regularizers.L2(optimized_config.L2_REG),
-            kernel_initializer=initializer,
-            name="dense_2"
-        ),
-        activation_layer(),
-    ])
-    
-    if optimized_config.USE_BATCH_NORM:
-        model_layers.append(keras.layers.BatchNormalization(name="batch_norm_2"))
-    
-    model_layers.extend([
-        keras.layers.Dropout(optimized_config.DROPOUT_RATES[1], name="dropout_2"),
-        
-        # Layer 3 ottimizzato
-        keras.layers.Dense(
-            optimized_config.HIDDEN_LAYERS[2], 
-            kernel_regularizer=keras.regularizers.L2(optimized_config.L2_REG),
-            kernel_initializer=initializer,
-            name="dense_3"
-        ),
-        activation_layer(),
-    ])
-    
-    if optimized_config.USE_BATCH_NORM:
-        model_layers.append(keras.layers.BatchNormalization(name="batch_norm_3"))
-    
-    model_layers.extend([
-        keras.layers.Dropout(optimized_config.DROPOUT_RATES[2], name="dropout_3"),
-        
-        # Layer 4 ottimizzato
-        keras.layers.Dense(
-            optimized_config.HIDDEN_LAYERS[3], 
-            kernel_regularizer=keras.regularizers.L2(optimized_config.L2_REG),
-            kernel_initializer=initializer,
-            name="dense_4"
-        ),
-        activation_layer(),
-    ])
-    
-    if optimized_config.USE_BATCH_NORM:
-        model_layers.append(keras.layers.BatchNormalization(name="batch_norm_4"))
-    
-    model_layers.extend([
-        keras.layers.Dropout(optimized_config.DROPOUT_RATES[3], name="dropout_4"),
-        
-        # Output layer
-        keras.layers.Dense(
-            1, 
-            activation="sigmoid",
-            kernel_initializer="glorot_uniform",
-            name="output"
-        )
-    ])
-    
-    model = keras.Sequential(model_layers, name="SmartGrid_Optimized_v26")
-    
-    # Ottimizzatore ottimizzato
-    if optimized_config.OPTIMIZER_TYPE == 'adamw':
-        optimizer = keras.optimizers.AdamW(
-            learning_rate=optimized_config.LEARNING_RATE,
-            weight_decay=optimized_config.L2_REG * 0.1,
-            beta_1=optimized_config.BETA_1,
-            beta_2=optimized_config.BETA_2,
-            clipnorm=optimized_config.CLIPNORM
-        )
-    elif optimized_config.OPTIMIZER_TYPE == 'nadam':
-        optimizer = keras.optimizers.Nadam(
-            learning_rate=optimized_config.LEARNING_RATE,
-            beta_1=optimized_config.BETA_1,
-            beta_2=optimized_config.BETA_2,
-            clipnorm=optimized_config.CLIPNORM
-        )
-    else:  # adam
-        optimizer = keras.optimizers.Adam(
-            learning_rate=optimized_config.LEARNING_RATE,
-            beta_1=optimized_config.BETA_1,
-            beta_2=optimized_config.BETA_2,
-            clipnorm=optimized_config.CLIPNORM
-        )
-    
-    # Compilazione ottimizzata
-    model.compile(
-        optimizer=optimizer,
-        loss=keras.losses.BinaryCrossentropy(),
-        metrics=[
-            "accuracy",
-            keras.metrics.Precision(name="precision"),
-            keras.metrics.Recall(name="recall"),
-            keras.metrics.F1Score(name="f1_score"),
-            keras.metrics.AUC(name="auc", curve='ROC')
-        ]
-    )
-
-    print(f"🔬 Modello ottimizzato scientificamente creato:")
-    print(f"   - Architettura: {architecture_summary}")
-    print(f"   - LR ottimizzato: {optimized_config.LEARNING_RATE:.6f}")
-    print(f"   - L2 ottimizzato: {optimized_config.L2_REG:.6f}")
-    print(f"   - Optimizer: {optimized_config.OPTIMIZER_TYPE}")
-    print(f"   - Activation: {optimized_config.ACTIVATION_FUNCTION}")
-    print(f"   - BatchNorm: {optimized_config.USE_BATCH_NORM}")
-    print(f"   - Score ottimizzazione: {optimized_config.OPTIMIZATION_SCORE:.6f}")
-    print(f"   - Parametri totali: {model.count_params():,}")
-    
-    return model
-
-# STEP 3: NEL TUO CLIENT.PY, SOSTITUISCI:
-# self.model = create_hybrid_model_v25(self.X_train.shape[1], self.config)
-# 
-# CON:
-# self.model = create_optimized_model_v26(self.X_train.shape[1])
-'''
-    
-    # Salva istruzioni implementazione
-    implementation_file = f"optimization_results/client_implementation_{timestamp}.py"
-    with open(implementation_file, 'w') as f:
-        f.write(client_implementation)
-    
-    print(f"✅ Codice implementazione client salvato: {implementation_file}")
-    
-    # Istruzioni finali - ✅ FIX: Usa direttamente best_params
-    instructions = f'''
-# ============================================================================
-# 📋 ISTRUZIONI COMPLETE PER IMPLEMENTAZIONE
-# ============================================================================
-
-🎯 PARAMETRI OTTIMIZZATI TROVATI:
-
-✅ Learning Rate: {best_params['learning_rate']:.6f}
-✅ L2 Regularization: {best_params['l2_reg']:.6f}  
-✅ Architettura: {architecture_summary}
-✅ Optimizer: {best_params['optimizer_type']}
-✅ Activation: {best_params['activation']}
-✅ BatchNorm: {best_params['use_batch_norm']}
-✅ Score ottimizzazione: {best_score if best_score is not None else 0.0:.6f}
-
-🔧 COME IMPLEMENTARE:
-
-1. 📄 Copia il file optimized_config_{timestamp}.py nella directory federated/SmartGrid/
-
-2. 🔧 Nel tuo client.py, AGGIUNGI l'import:
-   from optimized_config_{timestamp} import OptimizedConfig
-
-3. 🏗️ SOSTITUISCI la funzione create_hybrid_model_v25() con create_optimized_model_v26()
-   (codice completo in client_implementation_{timestamp}.py)
-
-4. 📝 Nel __init__ del client, SOSTITUISCI:
-   self.model = create_hybrid_model_v25(self.X_train.shape[1], self.config)
-   
-   CON:
-   self.model = create_optimized_model_v26(self.X_train.shape[1])
-
-5. 🔧 STESSO PROCEDIMENTO PER SERVER.PY:
-   - Aggiungi import OptimizedConfig
-   - Sostituisci create_hybrid_server_model_v25() con create_optimized_server_model_v26()
-   - Aggiorna chiamata nel server
-
-6. 🚀 RISULTATI ATTESI:
-   - Performance superiori ai parametri manuali
-   - Loss più stabile e convergente  
-   - F1-Score potenzialmente +15-25% migliore
-   - Architettura scientificamente validata
-   - Convergenza più rapida
-   - Metriche più bilanciate
-
-🎉 CONGRATULAZIONI! HAI PARAMETRI OTTIMIZZATI SCIENTIFICAMENTE!
-
-Generato il {datetime.now().strftime("%Y-%m-%d %H:%M:%S")} da francescaapellegrino
-'''
-    
-    instructions_file = f"optimization_results/implementation_instructions_{timestamp}.txt"
-    with open(instructions_file, 'w') as f:
-        f.write(instructions)
-    
-    print(f"✅ Istruzioni complete salvate: {instructions_file}")
-    print(f"\n🎉 CODICE IMPLEMENTAZIONE GENERATO CON SUCCESSO!")
-    print(f"📁 Controlla la directory optimization_results/ per tutti i file generati")
-    
-    # ✅ STAMPA RIASSUNTO OTTIMIZZAZIONE (no config conflicts)
-    print(f"\n🔬 RIASSUNTO OTTIMIZZAZIONE COMPLETATA:")
-    print(f"   - Architettura: {architecture_summary}")
-    print(f"   - LR ottimizzato: {best_params['learning_rate']:.6f}")
-    print(f"   - L2 ottimizzato: {best_params['l2_reg']:.6f}")
-    print(f"   - Optimizer: {best_params['optimizer_type']}")
-    print(f"   - Activation: {best_params['activation']}")
-    print(f"   - BatchNorm: {best_params['use_batch_norm']}")
-    print(f"   - Score finale: {best_score if best_score is not None else 0.0:.6f}")
-    print(f"   - Timestamp: {timestamp}")
-    
-    # Genera anche file config per il server
-    generate_server_implementation_code(best_params, timestamp, best_score)
-
-def generate_server_implementation_code(best_params, timestamp, best_score=None):
-    """Genera codice implementazione specifico per il server."""
-    
-    architecture_summary = f"{best_params['layer1_neurons']}→{best_params['layer2_neurons']}→{best_params['layer3_neurons']}→{best_params['layer4_neurons']}→1"
-    
-    server_implementation = f'''
-# ============================================================================
-# 📋 CODICE IMPLEMENTAZIONE PER SERVER.PY
-# Generato automaticamente da Optuna
-# ============================================================================
-
-# STEP 1: AGGIUNGI QUESTA IMPORT ALL'INIZIO DEL SERVER.PY
-from optimized_config_{timestamp} import OptimizedConfig
-
-# STEP 2: SOSTITUISCI create_hybrid_server_model_v25() CON QUESTA VERSIONE OTTIMIZZATA
-def create_optimized_server_model_v26(input_shape: int):
-    """
-    Modello server ottimizzato scientificamente con Optuna.
-    IDENTICO ai client per compatibilità.
-    """
-    tf.random.set_seed(42)
-    np.random.seed(42)
-    
-    # Configurazione ottimizzata
-    optimized_config = OptimizedConfig()
-    
-    # Funzione attivazione ottimizzata
-    if optimized_config.ACTIVATION_FUNCTION == 'leaky_relu':
-        activation_layer = lambda: keras.layers.LeakyReLU(alpha=0.1)
-        initializer = 'he_normal'
-    elif optimized_config.ACTIVATION_FUNCTION == 'selu':
-        activation_layer = lambda: keras.layers.Activation('selu')
-        initializer = 'lecun_normal'
-    elif optimized_config.ACTIVATION_FUNCTION == 'elu':
-        activation_layer = lambda: keras.layers.ELU(alpha=1.0)
-        initializer = 'he_normal'
-    else:  # relu
-        activation_layer = lambda: keras.layers.Activation('relu')
-        initializer = 'he_normal'
-    
-    # Architettura ottimizzata IDENTICA ai client
-    model_layers = [
-        keras.layers.Input(shape=(input_shape,), name="input_features"),
-        
-        # Layer 1 ottimizzato
-        keras.layers.Dense(
-            optimized_config.HIDDEN_LAYERS[0], 
-            kernel_regularizer=keras.regularizers.L2(optimized_config.L2_REG),
-            kernel_initializer=initializer,
-            name="dense_1"
-        ),
-        activation_layer(),
-    ]
-    
-    if optimized_config.USE_BATCH_NORM:
-        model_layers.append(keras.layers.BatchNormalization(name="batch_norm_1"))
-    
-    model_layers.extend([
-        keras.layers.Dropout(optimized_config.DROPOUT_RATES[0], name="dropout_1"),
-        
-        # Layer 2 ottimizzato
-        keras.layers.Dense(
-            optimized_config.HIDDEN_LAYERS[1], 
-            kernel_regularizer=keras.regularizers.L2(optimized_config.L2_REG),
-            kernel_initializer=initializer,
-            name="dense_2"
-        ),
-        activation_layer(),
-    ])
-    
-    if optimized_config.USE_BATCH_NORM:
-        model_layers.append(keras.layers.BatchNormalization(name="batch_norm_2"))
-    
-    model_layers.extend([
-        keras.layers.Dropout(optimized_config.DROPOUT_RATES[1], name="dropout_2"),
-        
-        # Layer 3 ottimizzato
-        keras.layers.Dense(
-            optimized_config.HIDDEN_LAYERS[2], 
-            kernel_regularizer=keras.regularizers.L2(optimized_config.L2_REG),
-            kernel_initializer=initializer,
-            name="dense_3"
-        ),
-        activation_layer(),
-    ])
-    
-    if optimized_config.USE_BATCH_NORM:
-        model_layers.append(keras.layers.BatchNormalization(name="batch_norm_3"))
-    
-    model_layers.extend([
-        keras.layers.Dropout(optimized_config.DROPOUT_RATES[2], name="dropout_3"),
-        
-        # Layer 4 ottimizzato
-        keras.layers.Dense(
-            optimized_config.HIDDEN_LAYERS[3], 
-            kernel_regularizer=keras.regularizers.L2(optimized_config.L2_REG),
-            kernel_initializer=initializer,
-            name="dense_4"
-        ),
-        activation_layer(),
-    ])
-    
-    if optimized_config.USE_BATCH_NORM:
-        model_layers.append(keras.layers.BatchNormalization(name="batch_norm_4"))
-    
-    model_layers.extend([
-        keras.layers.Dropout(optimized_config.DROPOUT_RATES[3], name="dropout_4"),
-        
-        # Output layer
-        keras.layers.Dense(
-            1, 
-            activation="sigmoid",
-            kernel_initializer="glorot_uniform",
-            name="output"
-        )
-    ])
-    
-    model = keras.Sequential(model_layers, name="SmartGrid_Server_Optimized_v26")
-    
-    # Ottimizzatore ottimizzato IDENTICO ai client
-    if optimized_config.OPTIMIZER_TYPE == 'adamw':
-        optimizer = keras.optimizers.AdamW(
-            learning_rate=optimized_config.LEARNING_RATE,
-            weight_decay=optimized_config.L2_REG * 0.1,
-            beta_1=optimized_config.BETA_1,
-            beta_2=optimized_config.BETA_2,
-            clipnorm=optimized_config.CLIPNORM
-        )
-    elif optimized_config.OPTIMIZER_TYPE == 'nadam':
-        optimizer = keras.optimizers.Nadam(
-            learning_rate=optimized_config.LEARNING_RATE,
-            beta_1=optimized_config.BETA_1,
-            beta_2=optimized_config.BETA_2,
-            clipnorm=optimized_config.CLIPNORM
-        )
-    else:  # adam
-        optimizer = keras.optimizers.Adam(
-            learning_rate=optimized_config.LEARNING_RATE,
-            beta_1=optimized_config.BETA_1,
-            beta_2=optimized_config.BETA_2,
-            clipnorm=optimized_config.CLIPNORM
-        )
-    
-    # Compilazione ottimizzata
-    model.compile(
-        optimizer=optimizer,
-        loss=keras.losses.BinaryCrossentropy(),
-        metrics=[
-            "accuracy",
-            keras.metrics.Precision(name="precision"),
-            keras.metrics.Recall(name="recall"),
-            keras.metrics.F1Score(name="f1_score"),
-            keras.metrics.AUC(name="auc", curve='ROC')
-        ]
-    )
-
-    print(f"🔬 Server Model ottimizzato scientificamente creato:")
-    print(f"   - Architettura: {architecture_summary}")
-    print(f"   - Input shape: {input_shape}")
-    print(f"   - LR ottimizzato: {optimized_config.LEARNING_RATE:.6f}")
-    print(f"   - L2 ottimizzato: {optimized_config.L2_REG:.6f}")
-    print(f"   - Optimizer: {optimized_config.OPTIMIZER_TYPE}")
-    print(f"   - Activation: {optimized_config.ACTIVATION_FUNCTION}")
-    print(f"   - BatchNorm: {optimized_config.USE_BATCH_NORM}")
-    print(f"   - Parametri: {model.count_params():,}")
-    print(f"   - Compatibilità: 100% con client ottimizzati")
-    
-    return model
-
-# STEP 3: NEL TUO SERVER.PY, nella funzione _generate_initial_parameters(), SOSTITUISCI:
-# temp_model = create_hybrid_server_model_v25(input_shape=config.TOTAL_FEATURES)
-# 
-# CON:
-# temp_model = create_optimized_server_model_v26(input_shape=config.TOTAL_FEATURES)
-
-# STEP 4: NEL TUO SERVER.PY, nella funzione evaluate(), SOSTITUISCI:
-# model = create_hybrid_server_model_v25(input_shape)
-# 
-# CON:
-# model = create_optimized_server_model_v26(input_shape)
-'''
-    
-    # Salva istruzioni implementazione server
-    server_file = f"optimization_results/server_implementation_{timestamp}.py"
-    with open(server_file, 'w') as f:
-        f.write(server_implementation)
-    
-    print(f"✅ Codice implementazione server salvato: {server_file}")
 
 if __name__ == "__main__":
     optimize_smartgrid_hyperparameters()

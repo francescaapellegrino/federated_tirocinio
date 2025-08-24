@@ -1,0 +1,42 @@
+# CONFIGURAZIONE OTTIMIZZATA CON OPTUNA
+# Generata automaticamente il 2025-08-24 19:36:26
+# Utente: Francesca Pellegrino
+# Timestamp: 20250824_193626
+
+class OptimizedConfig:
+    """Configurazione ottimizzata scientificamente con Optuna"""
+    
+    # PARAMETRI OTTIMIZZATI SCIENTIFICAMENTE
+    LEARNING_RATE = 0.0032895272
+    L2_REG = 0.0000539478
+    
+    # ARCHITETTURA OTTIMIZZATA (4-layer)
+    HIDDEN_LAYERS = [208, 48, 52, 22]
+    DROPOUT_RATES = [0.250, 0.500, 0.250, 0.450]
+    
+    # CONFIGURAZIONE OTTIMIZZATA
+    ACTIVATION_FUNCTION = "relu"
+    OPTIMIZER_TYPE = "adam"
+    USE_BATCH_NORM = True
+    
+    # PARAMETRI OTTIMIZZATORE OTTIMIZZATI
+    BETA_1 = 0.850
+    BETA_2 = 0.993
+    CLIPNORM = 1.8
+    
+    # PARAMETRI FISSI (COMPROVATI)
+    PCA_COMPONENTS = 20
+    EPOCHS_PER_ROUND = 15
+    BATCH_SIZE = 32
+    RANDOM_SEED = 42
+
+    # METADATA OTTIMIZZAZIONE
+    OPTIMIZATION_TIMESTAMP = "20250824_193626"
+    OPTIMIZATION_SCORE = 0.633105
+    OPTIMIZATION_METHOD = "optuna"
+    VERSION = "scientifically_optimized"
+    OPTIMIZED_BY = "francescaapellegrino"
+    
+    # ARCHITETTURA RIASSUNTO
+    ARCHITECTURE_SUMMARY = "208→48→52→22→1"
+    TOTAL_FEATURES = 20  # PCA fisso

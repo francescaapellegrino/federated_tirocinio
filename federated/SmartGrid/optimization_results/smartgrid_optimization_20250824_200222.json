@@ -1,0 +1,43 @@
+{
+  "best_params": {
+    "learning_rate": 0.0059487468132197715,
+    "l2_reg": 0.00026100256506134736,
+    "layer1_neurons": 80,
+    "layer2_neurons": 104,
+    "layer3_neurons": 52,
+    "layer4_neurons": 22,
+    "dropout1": 0.4,
+    "dropout2": 0.30000000000000004,
+    "dropout3": 0.30000000000000004,
+    "dropout4": 0.25,
+    "activation": "elu",
+    "optimizer_type": "nadam",
+    "use_batch_norm": false,
+    "beta_1": 0.9299999999999999,
+    "beta_2": 0.992,
+    "clipnorm": 0.6
+  },
+  "best_score": 0.6579585671424866,
+  "timestamp": "20250824_200222",
+  "user": "francescaapellegrino",
+  "n_trials_completed": 50,
+  "n_trials_requested": 50,
+  "objective_metric": "val_loss",
+  "config": {
+    "pca_components": 30,
+    "client_ids": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "epochs": 15,
+    "batch_size": 32
+  }
+}
