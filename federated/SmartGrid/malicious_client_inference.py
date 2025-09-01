@@ -1,6 +1,6 @@
 """
-Client Malevolo Potenziato - Attacchi Privacy Efficaci
-Francesca Pellegrino - Versione Avanzata per Tesi
+Client Malevolo - Inference Attack
+Francesca Pellegrino
 """
 
 import warnings
@@ -25,7 +25,7 @@ from datetime import datetime
 import traceback
 from optimized_config_20250824_193626 import OptimizedConfig
 
-# Import ART per attacchi avanzati
+# Import ART per attacchi
 ART_AVAILABLE = False
 try:
     from art.attacks.inference.membership_inference import MembershipInferenceBlackBox
