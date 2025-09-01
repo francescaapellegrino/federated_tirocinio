@@ -25,7 +25,7 @@ class OptimizedConfig:
     CLIPNORM = 1.8
     
     # PARAMETRI FISSI (COMPROVATI)
-    PCA_COMPONENTS = 20
+    PCA_COMPONENTS = 30
     EPOCHS_PER_ROUND = 15
     BATCH_SIZE = 32
     RANDOM_SEED = 42
@@ -39,4 +39,4 @@ class OptimizedConfig:
     
     # ARCHITETTURA RIASSUNTO
     ARCHITECTURE_SUMMARY = "208→48→52→22→1"
-    TOTAL_FEATURES = 20  # PCA fisso
+    TOTAL_FEATURES = 30  # PCA fisso
