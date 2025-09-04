@@ -1,0 +1,157 @@
+{
+  "membership_inference": {
+    "method": "multi_technique",
+    "confidence_based_accuracy": 0.67,
+    "gradient_based_signal": 0.0,
+    "gradient_samples_analyzed": 0,
+    "combined_accuracy": 0.67,
+    "attack_success": 1,
+    "privacy_breach_score": 0.3400000000000001,
+    "samples_tested": 4700,
+    "framework": "enhanced_custom_corrected",
+    "fix_applied": "tensor_shape_correction"
+  },
+  "property_inference": {
+    "attack_type": "property_inference_attack",
+    "method": "multi_technique",
+    "framework": "statistical",
+    "attack_success": 1,
+    "success_rate": 0.6666666666666666,
+    "properties_detected": 4,
+    "total_properties": 6,
+    "privacy_breach_level": "MEDIUM",
+    "estimated_attack_ratio": 0.6948437511920929,
+    "actual_attack_ratio": 0.6607142686843872,
+    "estimation_error": 0.034129482507705644,
+    "estimation_accuracy": 0.8976115524768831,
+    "distribution_analysis": {
+      "pred_mean": 0.7494751811027527,
+      "pred_std": 0.09941217303276062,
+      "pred_skew": -0.10031499713659286,
+      "pred_kurtosis": 0.026202678680419922,
+      "distribution_signal": 0.0632588379085064
+    },
+    "clustering_analysis": {
+      "cluster_separation": 0.23547226190567017,
+      "cluster_variance": 0.010229358449578285,
+      "attack_ratio_v2": 0.6561313271522522
+    },
+    "confidence_analysis": {
+      "high_confidence_ratio": 0.31505102040816324,
+      "low_confidence_ratio": 0.047193877551020405,
+      "confidence_asymmetry": 0.11460721492767334
+    },
+    "feature_analysis": {
+      "max_feature_impact": 0.0014969706535339355,
+      "avg_feature_impact": 0.0004964888212271035
+    },
+    "techniques_used": [
+      "distribution_analysis",
+      "clustering_simplified",
+      "confidence_pattern_analysis",
+      "feature_perturbation_analysis"
+    ],
+    "sophistication_level": "high_realistic",
+    "samples_analyzed": 784,
+    "success_criteria": "2_of_6_properties_detected",
+    "threshold_strategy": "realistic_permissive"
+  },
+  "model_inversion": {
+    "attack_type": "model_inversion",
+    "method": "multi_technique",
+    "framework": "confidence_gradient_statistical",
+    "attack_success": 1,
+    "normal_confidence": 0.5066899359226227,
+    "attack_confidence": 0.7289310097694397,
+    "avg_confidence": 0.6178104728460312,
+    "information_leakage_score": 0.7242391654849053,
+    "confidence_component": 0.6178104728460312,
+    "separation_component": 1.0,
+    "distance_component": 0.5766696453094482,
+    "high_conf_normal_samples": 10,
+    "high_conf_attack_samples": 247,
+    "normal_threshold_used": "fallback_lowest",
+    "attack_threshold_used": "0.8",
+    "prototype_separation": 0.7690960168838501,
+    "prototype_l2_distance": 5.766696453094482,
+    "prototype_cosine_similarity": -0.23590286076068878,
+    "best_normal_method": "gradient_refined",
+    "best_attack_method": "gradient_refined",
+    "success_criteria": {
+      "confidence_criterion": 1,
+      "separation_criterion": 1,
+      "leakage_criterion": 1,
+      "sample_criterion": 1,
+      "total_successful": 4,
+      "total_criteria": 4,
+      "success_threshold": 3
+    },
+    "techniques_used": [
+      "adaptive_confidence_thresholding",
+      "multi_prototype_generation",
+      "gradient_based_refinement",
+      "prototype_evaluation",
+      "separability_analysis"
+    ],
+    "sophistication_level": "very_high",
+    "samples_analyzed": 784,
+    "prototypes_generated": 8
+  },
+  "model_behavior": {
+    "analysis_type": "model_behavior",
+    "behavior_consistency_scores": [
+      0.7335414290428162,
+      0.7488095760345459,
+      0.7581015825271606,
+      0.7355251908302307,
+      0.7406839728355408
+    ],
+    "behavior_variance": 8.239159797085449e-05,
+    "model_stability": 0.9991760840202915,
+    "behavioral_consistency": 0.9989029014250264,
+    "temporal_drift": 0.00010007023811342567,
+    "prediction_means": [
+      0.7335414290428162,
+      0.7488095760345459,
+      0.7581015825271606,
+      0.7355251908302307,
+      0.7406839728355408
+    ],
+    "prediction_stds": [
+      0.100592702627182,
+      0.11916621774435043,
+      0.09061774611473083,
+      0.10156416147947311,
+      0.08486691862344742
+    ],
+    "analysis_success": 1,
+    "insights_extracted": 2,
+    "insights_list": [
+      "high_stability",
+      "behavioral_consistency"
+    ],
+    "privacy_implications": "Model behavior reveals training characteristics",
+    "portions_analyzed": 5,
+    "samples_per_portion": 30,
+    "framework": "custom_behavioral_analysis"
+  },
+  "attack_summary": {
+    "total_attacks_attempted": 3,
+    "successful_attacks": 3,
+    "attack_success_rate": 1.0,
+    "privacy_risk_score": 1.730905832151572,
+    "severity_level": "HIGH",
+    "client_id": 12,
+    "timestamp": "2025-09-05T00:32:23.433364",
+    "federated_learning_compromised": 1,
+    "privacy_preserving_needed": 1,
+    "attack_version": "final",
+    "attacks_implemented": [
+      "membership_inference",
+      "property_inference",
+      "model_inversion"
+    ],
+    "theoretical_completeness": "3/3_attacks_implemented",
+    "thesis_ready": 1
+  }
+}

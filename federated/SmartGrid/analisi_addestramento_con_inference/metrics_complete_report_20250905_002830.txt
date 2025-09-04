@@ -1,0 +1,103 @@
+RESOCONTO ADDESTRAMENTO FEDERATO SMARTGRID
+Francesca Pellegrino
+Rounds totali: 16
+
+
+TABELLA RIASSUNTIVA METRICHE:
+========================================================================================================================
+Round  Loss       Accuracy   Precision   Recall     F1_Score   AUC_ROC    Specificity Sensitivity
+------------------------------------------------------------------------------------------------------------------------
+0      N/A        0.408623   0.670072    0.283266   0.398198   0.499251   0.688550   0.283266  
+1      0.503040   0.690405   0.690605    0.999582   0.816852   0.489005   0.000000   0.999582  
+2      0.514731   0.689924   0.690529    0.998607   0.816473   0.501156   0.000622   0.998607  
+3      0.508662   0.681455   0.691265    0.973666   0.808516   0.503302   0.028936   0.973666  
+4      0.508113   0.690405   0.690715    0.999164   0.816789   0.501866   0.000933   0.999164  
+5      0.500439   0.690886   0.690937    0.999582   0.817084   0.510501   0.001556   0.999582  
+6      0.501985   0.690886   0.690900    0.999721   0.817105   0.511989   0.001245   0.999721  
+7      0.508029   0.690886   0.690937    0.999582   0.817084   0.516975   0.001556   0.999582  
+8      0.515034   0.690790   0.690834    0.999721   0.817059   0.519508   0.000933   0.999721  
+9      0.527801   0.691079   0.690960    1.000000   0.817240   0.523819   0.001245   1.000000  
+10     0.532388   0.691175   0.691026    1.000000   0.817286   0.527106   0.001556   1.000000  
+11     0.536298   0.690983   0.690893    1.000000   0.817193   0.526396   0.000933   1.000000  
+12     0.541539   0.690886   0.690864    0.999861   0.817126   0.524306   0.000933   0.999861  
+13     0.546047   0.691079   0.691033    0.999721   0.817198   0.529514   0.001867   0.999721  
+14     0.548296   0.690886   0.691011    0.999303   0.817043   0.529424   0.002178   0.999303  
+15     0.555646   0.690694   0.690841    0.999443   0.816970   0.528595   0.001245   0.999443  
+========================================================================================================================
+
+STATISTICHE FINALI:
+============================================================
+
+🔹 VAL_LOSS:
+   Rounds disponibili  : 15
+   Valore iniziale     : 0.503040
+   Valore finale       : 0.555646
+   Valore minimo       : 0.500439
+   Valore massimo      : 0.555646
+   Valore medio        : 0.523203
+   Miglioramento       : +0.052607 📈
+
+🔹 GLOBAL_ACCURACY:
+   Rounds disponibili  : 16
+   Valore iniziale     : 0.408623
+   Valore finale       : 0.690694
+   Valore minimo       : 0.408623
+   Valore massimo      : 0.691175
+   Valore medio        : 0.672565
+   Miglioramento       : +0.282071 📈
+
+🔹 GLOBAL_PRECISION:
+   Rounds disponibili  : 16
+   Valore iniziale     : 0.670072
+   Valore finale       : 0.690841
+   Valore minimo       : 0.670072
+   Valore massimo      : 0.691265
+   Valore medio        : 0.689589
+   Miglioramento       : +0.020768 📈
+
+🔹 GLOBAL_RECALL:
+   Rounds disponibili  : 16
+   Valore iniziale     : 0.283266
+   Valore finale       : 0.999443
+   Valore minimo       : 0.283266
+   Valore massimo      : 1.000000
+   Valore medio        : 0.953201
+   Miglioramento       : +0.716177 📈
+
+🔹 GLOBAL_F1_SCORE:
+   Rounds disponibili  : 16
+   Valore iniziale     : 0.398198
+   Valore finale       : 0.816970
+   Valore minimo       : 0.398198
+   Valore massimo      : 0.817286
+   Valore medio        : 0.790326
+   Miglioramento       : +0.418772 📈
+
+🔹 GLOBAL_AUC_ROC:
+   Rounds disponibili  : 16
+   Valore iniziale     : 0.499251
+   Valore finale       : 0.528595
+   Valore minimo       : 0.489005
+   Valore massimo      : 0.529514
+   Valore medio        : 0.515170
+   Miglioramento       : +0.029343 📈
+
+🔹 GLOBAL_SPECIFICITY:
+   Rounds disponibili  : 16
+   Valore iniziale     : 0.688550
+   Valore finale       : 0.001245
+   Valore minimo       : 0.000000
+   Valore massimo      : 0.688550
+   Valore medio        : 0.045893
+   Miglioramento       : -0.687306 📉
+
+🔹 GLOBAL_SENSITIVITY:
+   Rounds disponibili  : 16
+   Valore iniziale     : 0.283266
+   Valore finale       : 0.999443
+   Valore minimo       : 0.283266
+   Valore massimo      : 1.000000
+   Valore medio        : 0.953201
+   Miglioramento       : +0.716177 📈
+
+ADDESTRAMENTO COMPLETATO!

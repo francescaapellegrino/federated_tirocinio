@@ -328,18 +328,18 @@ class ConservativeFeatureEngineer:
         # Stack features
         X_enhanced = np.hstack([
             X,                  # 30 PCA originali
-            mean_per_row,       # 1
-            std_per_row,        # 2
-            var_per_row,        # 3
-            min_per_row,        # 4
-            max_per_row,        # 5
-            range_per_row,      # 6
-            skew_per_row,       # 7
-            kurtosis_per_row,   # 8
-            p25_per_row,        # 9
-            p75_per_row,        # 10
-            p90_per_row,        # 11
-            l2_norm_per_row     # 12
+            mean_per_row,       
+            std_per_row,        
+            var_per_row,        
+            min_per_row,        
+            max_per_row,        
+            range_per_row,      
+            skew_per_row,       
+            kurtosis_per_row,   
+            p25_per_row,        
+            p75_per_row,        
+            p90_per_row,        
+            l2_norm_per_row     
         ])
         
         # Pulizia NaN/Inf (conservative)
@@ -542,15 +542,15 @@ def create_optimized_model(input_shape: int):
     )
 
     print(f"Modello ottimizzato scientificamente creato:")
-    print(f"   - Architettura: {optimized_config.ARCHITECTURE_SUMMARY}")
-    print(f"   - LR ottimizzato: {optimized_config.LEARNING_RATE:.6f}")
-    print(f"   - L2 ottimizzato: {optimized_config.L2_REG:.6f}")
-    print(f"   - Optimizer: {optimized_config.OPTIMIZER_TYPE}")
-    print(f"   - Activation: {optimized_config.ACTIVATION_FUNCTION}")
-    print(f"   - BatchNorm: {optimized_config.USE_BATCH_NORM}")
-    print(f"   - Score ottimizzazione: {optimized_config.OPTIMIZATION_SCORE:.6f}")
-    print(f"   - Parametri totali: {model.count_params():,}")
-    
+    print(f"- Architettura: {optimized_config.ARCHITECTURE_SUMMARY}")
+    print(f"- LR ottimizzato: {optimized_config.LEARNING_RATE:.6f}")
+    print(f"- L2 ottimizzato: {optimized_config.L2_REG:.6f}")
+    print(f"- Optimizer: {optimized_config.OPTIMIZER_TYPE}")
+    print(f"- Activation: {optimized_config.ACTIVATION_FUNCTION}")
+    print(f"- BatchNorm: {optimized_config.USE_BATCH_NORM}")
+    print(f"- Score ottimizzazione: {optimized_config.OPTIMIZATION_SCORE:.6f}")
+    print(f"- Parametri totali: {model.count_params():,}")
+
     return model
 
 # STABLE MODEL ARCHITECTURE OTTIMIZZATO
@@ -641,12 +641,12 @@ def create_model(input_shape: int, config: ClientConfig) -> keras.Model:
     )
 
     print(f"Optimized Model creato:")
-    print(f"   - Architettura: {config.HIDDEN_LAYERS[0]}→{config.HIDDEN_LAYERS[1]}→{config.HIDDEN_LAYERS[2]}→{config.HIDDEN_LAYERS[3]}→1")
-    print(f"   - Input features: {input_shape}")
-    print(f"   - Learning Rate: {config.LEARNING_RATE:.6f} (OPTUNA)")
-    print(f"   - L2 Reg: {config.L2_REG:.6f}")
-    print(f"   - Parametri: {model.count_params():,}")
-    
+    print(f"- Architettura: {config.HIDDEN_LAYERS[0]}→{config.HIDDEN_LAYERS[1]}→{config.HIDDEN_LAYERS[2]}→{config.HIDDEN_LAYERS[3]}→1")
+    print(f"- Input features: {input_shape}")
+    print(f"- Learning Rate: {config.LEARNING_RATE:.6f} (OPTUNA)")
+    print(f"- L2 Reg: {config.L2_REG:.6f}")
+    print(f"- Parametri: {model.count_params():,}")
+
     return model
 
 # CALLBACK OTTIMIZZATI
@@ -694,8 +694,8 @@ def create_callbacks(config: ClientConfig):
         )
 
     print(f"Callbacks configurati:")
-    print(f"   - EarlyStopping: monitor={config.EARLY_STOPPING_MONITOR}, patience={config.EARLY_STOPPING_PATIENCE}")
-    print(f"   - ReduceLROnPlateau: factor={config.REDUCE_LR_FACTOR}, patience={config.REDUCE_LR_PATIENCE}")
+    print(f"- EarlyStopping: monitor={config.EARLY_STOPPING_MONITOR}, patience={config.EARLY_STOPPING_PATIENCE}")
+    print(f"- ReduceLROnPlateau: factor={config.REDUCE_LR_FACTOR}, patience={config.REDUCE_LR_PATIENCE}")
     
     return callbacks
 
@@ -713,7 +713,7 @@ def load_client_data(client_id: int, config: ClientConfig):
     
     df = pd.read_csv(file_path)
     X = df.drop(columns=["marker"])
-    y = (df["marker"] != "Natural").astype(int)
+    y = (df["marker"] != "Natural").astype(np.float32)
     
     print(f"Dataset raw: {len(X)} campioni, {X.shape[1]} feature")
     print(f"-> Attacchi: {y.sum()} ({y.mean()*100:.1f}%)")
@@ -853,7 +853,7 @@ class SmartGridClient(fl.client.NumPyClient):
         current_stage = curriculum_config['stage']
         target_loss = curriculum_config['target_loss']
 
-        # ADAPTIVE LEARNING RATE BASATO SU CURRICULUM
+        # Adaptive Learning Rate basato su curriculum
         try:
             optimized_config = OptimizedConfig()
             base_lr = optimized_config.LEARNING_RATE
@@ -927,8 +927,8 @@ class SmartGridClient(fl.client.NumPyClient):
                 print(f"[Client {self.client_id}] CURRICULUM COMPLETED: Final stage reached")
         
         print(f"[Client {self.client_id}] Training completato (CURRICULUM STAGE {current_stage}):")
-        print(f"Train: Loss={train_loss:.4f}, Acc={train_accuracy:.4f}, F1={train_f1:.4f}")
-        print(f"Val: Loss={val_loss:.4f}, Acc={val_accuracy:.4f}, F1={val_f1:.4f}")
+        print(f"Train: Loss={float(train_loss):.4f}, Acc={float(train_accuracy):.4f}, F1={float(train_f1):.4f}")
+        print(f"Val: Loss={float(val_loss):.4f}, Acc={float(val_accuracy):.4f}, F1={float(val_f1):.4f}")
         print(f"Target: {target_loss:.3f} ({'REACHED' if val_loss <= target_loss else 'IN PROGRESS'})")
         
         # Metriche estese con curriculum
@@ -1072,7 +1072,7 @@ class SmartGridClient(fl.client.NumPyClient):
         })
 
         print(f"[Client {self.client_id}] Evaluation completata:")
-        print(f"Test Acc: {accuracy:.4f}, F1: {f1_keras:.4f}, AUC: {auc:.4f}")
+        print(f"Test Acc: {float(accuracy):.4f}, F1: {float(f1_keras):.4f}, AUC: {float(auc):.4f}")
         print(f"Threshold optimization: {'SI' if threshold_metrics.get('threshold_optimization_success', True) else 'NO'}")
         print(f"Specificity optimization: {'SI' if specificity_metrics.get('specificity_optimization_success') else 'NO'}")
 

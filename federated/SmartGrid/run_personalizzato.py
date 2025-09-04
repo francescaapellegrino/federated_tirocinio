@@ -1,8 +1,7 @@
 """
 Launcher Interattivo per Client SmartGrid
-Permette di scegliere quanti client privacy-preserving e quanti malevoli avviare
-Francesca Pellegrino - 2025-08-30
-Versione: Interattiva e User-Friendly per Tesi
+Permette di scegliere quanti client buoni e quanti malevoli avviare
+Francesca Pellegrino
 """
 
 import subprocess
@@ -13,16 +12,8 @@ import sys
 from datetime import datetime
 from typing import List, Dict, Tuple
 
+# Launcher interattivo per scegliere configurazione client.
 class InteractiveClientLauncher:
-    """
-    Launcher interattivo per scegliere configurazione client.
-    
-    Caratteristiche didattiche:
-    - Interfaccia user-friendly per sperimentazione
-    - Configurazione flessibile per test empirici
-    - Avvio sequenziale compatibile MacOS
-    - Documentazione automatica delle configurazioni
-    """
     
     def __init__(self):
         self.processes = []
@@ -33,24 +24,15 @@ class InteractiveClientLauncher:
         
         # File client supportati
         self.client_files = {
-            'privacy': 'client_with_privacy.py',
+            'privacy': 'client.py',
             'malicious': 'malicious_client_inference.py'
         }
         
-        print("🎓 LAUNCHER INTERATTIVO SMARTGRID - FEDERATED LEARNING")
-        print("📚 Progetto Tesi: Privacy-Preserving vs Adversarial Attacks")
-        print("👤 Studente: francescaapellegrino")
+        print("LAUNCHER INTERATTIVO SMARTGRID - FEDERATED LEARNING")
     
     def check_environment(self):
-        """
-        Verifica che i file client necessari esistano.
-        
-        Spiegazione didattica:
-        - Controlla la presenza dei file Python client
-        - Verifica che Python3 sia disponibile
-        - Assicura che l'ambiente sia pronto per l'esecuzione
-        """
-        print("\n🔧 VERIFICA AMBIENTE DI ESECUZIONE...")
+        """Verifica che i file client necessari esistano"""
+        print("\nVERIFICA AMBIENTE DI ESECUZIONE...")
         
         missing_files = []
         available_clients = []
@@ -93,15 +75,7 @@ class InteractiveClientLauncher:
         return True
     
     def get_user_configuration(self):
-        """
-        Ottiene la configurazione desiderata dall'utente.
-        
-        Spiegazione didattica:
-        - Chiede all'utente quanti client di ogni tipo vuole
-        - Valida l'input per evitare errori
-        - Calcola automaticamente gli ID client
-        """
-        print(f"\n📋 CONFIGURAZIONE CLIENT PER LA TUA TESI")
+        """Ottiene la configurazione desiderata dall'utente"""
         print("=" * 60)
         print("🎯 OBIETTIVO: Testare sistema privacy-preserving vs attacchi")
         print("📊 METODOLOGIA: Federeted Learning con diversi tipi di client")
@@ -111,9 +85,6 @@ class InteractiveClientLauncher:
         while True:
             try:
                 print(f"\n🔒 CLIENT PRIVACY-PRESERVING:")
-                print(f"   - Implementano Differential Privacy")
-                print(f"   - Usano budget privacy ε = 100.0")
-                print(f"   - Proteggono i dati durante training federato")
                 
                 privacy_input = input(f"\nQuanti client privacy-preserving vuoi avviare? (0-20): ").strip()
                 
@@ -137,11 +108,9 @@ class InteractiveClientLauncher:
         # Input client malevoli
         while True:
             try:
-                print(f"\n🔴 CLIENT MALEVOLI (ADVERSARIAL):")
-                print(f"   - Eseguono attacchi di inferenza")
-                print(f"   - Testano robustezza del sistema privacy")
-                print(f"   - Includono: Membership, Attribute, Model Inversion")
-                
+                print(f"\n🔴 CLIENT MALEVOLI:")
+                print(f"   - Includono: Membership Inference Attack, Property Inference Attack, Model Inversion Attack")
+
                 malicious_input = input(f"\nQuanti client malevoli vuoi avviare? (0-5): ").strip()
                 
                 if malicious_input == "":
@@ -199,16 +168,12 @@ class InteractiveClientLauncher:
             'privacy_ids': privacy_ids if self.privacy_clients > 0 else [],
             'malicious_ids': malicious_ids if self.malicious_clients > 0 else [],
             'user': 'francescaapellegrino',
-            'purpose': 'tesi_privacy_preserving_vs_adversarial'
+            'purpose': 'privacy_preserving_vs_adversarial'
         }
         
         # Conferma finale
         try:
             print(f"\n🚀 PRONTO PER AVVIARE IL SISTEMA!")
-            print(f"💡 Questa configurazione ti permetterà di:")
-            print(f"   - Testare l'efficacia delle difese privacy")
-            print(f"   - Misurare l'impatto degli attacchi")
-            print(f"   - Raccogliere dati empirici per la tesi")
             
             confirm = input(f"\nProcedere con questa configurazione? (s/N): ").strip().lower()
             if confirm not in ['s', 'si', 'y', 'yes']:
@@ -222,22 +187,18 @@ class InteractiveClientLauncher:
         return True
     
     def start_client(self, client_id: int, client_type: str):
-        """
-        Avvia un singolo client del tipo specificato.
-        
+        """Avvia un singolo client del tipo specificato. 
         Args:
             client_id: ID numerico del client (1, 2, 3, ...)
-            client_type: 'privacy' o 'malicious'
-            
-        Spiegazione didattica:
+            client_type: 'privacy' o 'malicious' 
+        Spiegazione:
         - Costruisce il comando appropriato per ogni tipo di client
         - Usa subprocess per compatibilità MacOS
-        - Monitora l'avvio per debug
-        """
+        - Monitora l'avvio per debug"""
         try:
             if client_type == 'privacy':
                 # Client privacy-preserving con Differential Privacy
-                cmd = ['python3', 'client_with_privacy.py', str(client_id)]
+                cmd = ['python3', 'client.py', str(client_id)]
                 description = f"🔒 Client Privacy-Preserving {client_id}"
             elif client_type == 'malicious':
                 # Client malevolo con attacchi di inferenza
@@ -277,20 +238,13 @@ class InteractiveClientLauncher:
             return None
     
     def launch_all_clients(self):
-        """
-        Avvia tutti i client configurati in sequenza.
-        
-        Spiegazione didattica:
-        - Avvio sequenziale per evitare conflitti gRPC su MacOS
+        """Avvia tutti i client configurati in sequenza.
+        Spiegazione:
+        - Avvio sequenziale
         - Delay progressivo per stabilizzare le connessioni
         - Monitoring dell'avvio per debugging
         """
-        print(f"\n🚀 AVVIO SEQUENZIALE CLIENT (COMPATIBILE MACOS)")
-        print("=" * 70)
-        print(f"🎓 Configurazione per Tesi:")
-        print(f"   - Privacy-Preserving FL con Differential Privacy")
-        print(f"   - Test empirici robustezza vs attacchi adversarial")
-        print(f"   - Metodologia scientifica per valutazione security")
+        print(f"\n🚀 AVVIO SEQUENZIALE CLIENT")
         print("=" * 70)
         
         # Contatori statistiche
@@ -355,20 +309,13 @@ class InteractiveClientLauncher:
             return False
     
     def wait_for_completion(self):
-        """
-        Attende il completamento di tutti i client.
-        
-        Spiegazione didattica:
-        - Monitora i processi client durante l'esecuzione
-        - Fornisce statistiche in tempo reale
-        - Gestisce la terminazione educata dei processi
-        """
+        """Attende il completamento di tutti i client"""
         if not self.processes:
             return
         
         print(f"\n⏳ MONITORAGGIO TRAINING FEDERATO...")
         print(f"💡 Premi Ctrl+C per terminare tutti i client")
-        print(f"📊 Processi in esecuzione: {len(self.processes)}")
+        print(f"📊 Attendere... Processi in esecuzione: {len(self.processes)}")
         
         completed_count = 0
         privacy_completed = 0
@@ -409,23 +356,9 @@ class InteractiveClientLauncher:
         print(f"   🔒 Privacy-Preserving: {privacy_completed}")
         print(f"   🔴 Malevoli: {malicious_completed}")
         print(f"   📊 Totale: {completed_count}")
-        
-        # Istruzioni per la tesi
-        print(f"\n🎓 PER LA TUA TESI:")
-        print(f"   📊 Analizza i log del server per metriche privacy")
-        print(f"   🔍 Controlla i file di output degli attacchi in: anti_privacy_attack_results/")
-        print(f"   📈 Confronta performance con/senza client malevoli")
-        print(f"   📝 Documenta l'efficacia delle difese privacy-preserving")
     
     def cleanup_processes(self):
-        """
-        Termina tutti i processi attivi in modo sicuro.
-        
-        Spiegazione didattica:
-        - Terminazione educata prima di forzare l'uccisione
-        - Gestione specifica per MacOS vs altri sistemi
-        - Logging delle operazioni per debugging
-        """
+        """Termina tutti i processi attivi in modo sicuro"""
         if not self.processes:
             return
         
@@ -475,14 +408,7 @@ class InteractiveClientLauncher:
         print(f"✅ Terminazione completata: {terminated_count} processi")
     
     def save_session_log(self):
-        """
-        Salva un log della sessione per documentazione tesi.
-        
-        Spiegazione didattica:
-        - Documenta automaticamente la configurazione usata
-        - Fornisce tracciabilità per esperimenti
-        - Utile per riproducibilità scientifica
-        """
+        """Salva un log della sessione"""
         try:
             os.makedirs('session_logs', exist_ok=True)
             
@@ -493,7 +419,7 @@ class InteractiveClientLauncher:
                 f.write("=" * 60 + "\n")
                 f.write(f"Data: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 f.write(f"Utente: {self.session_config['user']}\n")
-                f.write(f"Progetto: Tesi Privacy-Preserving vs Adversarial\n")
+                f.write(f"Progetto: Privacy-Preserving vs Adversarial\n")
                 f.write(f"Timestamp: {self.session_config['timestamp']}\n\n")
                 
                 f.write("CONFIGURAZIONE CLIENT:\n")
@@ -514,13 +440,6 @@ class InteractiveClientLauncher:
                 for proc_info in self.processes:
                     f.write(f"ID {proc_info['client_id']}: {proc_info['client_type']} - {proc_info['cmd']}\n")
                 
-                f.write(f"\nOBIETTIVI SPERIMENTALI:\n")
-                f.write("-" * 25 + "\n")
-                f.write(f"- Testare efficacia Differential Privacy\n")
-                f.write(f"- Misurare robustezza vs attacchi di inferenza\n")
-                f.write(f"- Validare implementazione privacy-preserving\n")
-                f.write(f"- Raccogliere dati empirici per tesi\n")
-                
                 f.write(f"\nSESSIONE CONFIGURATA CON SUCCESSO!\n")
             
             print(f"   📁 Log sessione salvato: {log_file}")
@@ -529,42 +448,17 @@ class InteractiveClientLauncher:
             print(f"   ⚠️ Errore salvataggio log: {e}")
 
 def show_welcome_banner():
-    """
-    Mostra banner di benvenuto con informazioni didattiche.
-    
-    Spiegazione didattica:
-    - Presenta il contesto del progetto di tesi
-    - Spiega l'obiettivo dell'esperimento
-    - Fornisce background teorico
-    """
-    print("🎓 SMARTGRID FEDERATED LEARNING - PROGETTO TESI")
-    print("=" * 80)
-    print("📚 CONTESTO ACCADEMICO:")
-    print("   🎯 Obiettivo: Valutare Privacy-Preserving Federated Learning")
-    print("   🔬 Metodologia: Test empirici con client adversarial")
-    print("   📊 Output: Dati quantitativi per documentazione tesi")
+    """Mostra banner di benvenuto con info"""
+    print("🎓 SMARTGRID FEDERATED LEARNING")
     print("=" * 80)
     print("🔧 ARCHITETTURA SISTEMA:")
-    print("   🔒 Client Privacy: Differential Privacy + Secure Aggregation")
-    print("   🔴 Client Malevoli: Attacchi Membership/Attribute/Model Inversion")
-    print("   🖥️ Server Federato: Aggregazione FedAvg + Privacy Monitoring")
-    print("=" * 80)
-    print("📈 METRICHE DI VALUTAZIONE:")
-    print("   • Privacy Resistance Score (0-1)")
-    print("   • Attack Success Rate (%)")
-    print("   • Utility Preservation (accuracy)")
-    print("   • Communication Efficiency")
+    print("   🔒 Client Privacy")
+    print("   🔴 Client Malevoli: Attacchi Membership/Property/Model Inversion")
+    print("   🖥️ Server Federato: Aggregazione FedAvg")
     print("=" * 80)
 
+# MAIN FUNCTION
 def main():
-    """
-    Funzione principale del launcher interattivo.
-    
-    Spiegazione didattica:
-    - Coordina tutto il processo di configurazione e avvio
-    - Gestisce errori e fornisce feedback utente
-    - Implementa il pattern try-except per robustezza
-    """
     show_welcome_banner()
     
     launcher = InteractiveClientLauncher()
@@ -597,8 +491,7 @@ def main():
             print(f"\n🛑 Interruzione manuale dell'utente...")
             launcher.cleanup_processes()
         
-        print(f"\n✨ ESPERIMENTO COMPLETATO CON SUCCESSO! ✨")
-        print(f"📊 I dati sono ora pronti per l'analisi nella tua tesi")
+        print(f"\n✨ ADDESTRAMENTO COMPLETATO CON SUCCESSO! ✨")
         return True
         
     except Exception as e:
@@ -612,7 +505,7 @@ def main():
         except:
             pass
         
-        print(f"\n🔧 Suggerimenti per il debug:")
+        print(f"\nSuggerimenti per il debug:")
         print(f"   1. Verifica che il server sia avviato (python3 server.py)")
         print(f"   2. Controlla i log dei client per errori specifici")
         print(f"   3. Assicurati che non ci siano conflitti di porta")
@@ -622,9 +515,6 @@ def main():
 if __name__ == "__main__":
     success = main()
     if not success:
-        print(f"\n📚 NOTA PER LA TESI:")
-        print(f"   Anche gli errori sono informativi per documentare")
-        print(f"   le sfide implementative del federated learning!")
         sys.exit(1)
     else:
-        print(f"\n🎓 ECCELLENTE! Hai raccolto dati empirici preziosi per la tua tesi!")
+        print(f"\nECCELLENTE! Addestramento terminato!")

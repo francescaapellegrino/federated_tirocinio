@@ -1,5 +1,5 @@
 """
-Server federato SmartGrid - VERSIONE CORRETTA
+Server federato SmartGrid
 Francesca Pellegrino
 """
 
@@ -83,7 +83,7 @@ class CompleteMetricsTracker:
             print(f"Errore salvataggio round {round_num}: {e}")
     
     def generate_final_report(self):
-        """Genera il resoconto finale completo."""
+        """Genera il resoconto finale completo"""
         try:
             if not self.round_metrics:
                 print("Nessuna metrica da salvare")
@@ -108,8 +108,8 @@ class CompleteMetricsTracker:
             print(f"Errore generazione resoconto: {e}")
     
     def _write_summary_table(self, f):
-        """Scrive tabella riassuntiva."""
-        f.write("TABELLA RIASSUNTIVA METRICHE:\n")
+        """Scrive tabella riassuntiva"""
+        f.write("\n\nTABELLA RIASSUNTIVA METRICHE:\n")
         f.write("=" * 120 + "\n")
         
         # Header tabella
@@ -136,7 +136,7 @@ class CompleteMetricsTracker:
         f.write("=" * 120 + "\n\n")
     
     def _write_final_statistics(self, f):
-        """Scrive statistiche finali."""
+        """Scrive statistiche finali"""
         f.write("STATISTICHE FINALI:\n")
         f.write("=" * 60 + "\n")
         
@@ -172,31 +172,6 @@ class CompleteMetricsTracker:
                 direction = "📈" if stats['improvement'] > 0 else "📉"
                 f.write(f"   Miglioramento       : {stats['improvement']:+.6f} {direction}\n")
         
-        # Best round per ogni metrica
-        f.write(f"\nMIGLIORI ROUND PER METRICA:\n")
-        f.write("-" * 40 + "\n")
-        
-        for metric, stats in metrics_stats.items():
-            if metric == 'val_loss':
-                # Per val_loss, il migliore è il minimo
-                best_value = stats['min']
-                best_round = None
-                for r, data in self.round_metrics.items():
-                    if data[metric] == best_value:
-                        best_round = r
-                        break
-            else:
-                # Per le altre metriche, il migliore è il massimo
-                best_value = stats['max']
-                best_round = None
-                for r, data in self.round_metrics.items():
-                    if data[metric] == best_value:
-                        best_round = r
-                        break
-            
-            if best_round is not None:
-                f.write(f"  {metric:<20}: Round {best_round} ({best_value:.6f})\n")
-        
         f.write(f"\nADDESTRAMENTO COMPLETATO!\n")
 
 # CONFIGURAZIONE SERVER (in caso di errore modello ottimizzato)
@@ -208,13 +183,13 @@ class ServerConfig:
     LEARNING_RATE = 0.0032895272    # tasso di apprendimento
     L2_REG = 0.0000539478   # fattore di regolarizzazione L2 che penalizza i pesi grandi
     
-    # Data preprocessing - 🔧 FIX: PARAMETRI CORRETTI
-    PCA_COMPONENTS = 30      # CORRETTO A 30
+    # Data preprocessing
+    PCA_COMPONENTS = 30  
     STATISTICAL_FEATURES = 12    # numero feature statistiche aggiuntive
-    TOTAL_FEATURES = 30      # 🔧 FIX: CORRETTO A 30
+    TOTAL_FEATURES = 30
 
     # Server specific
-    NUM_ROUNDS = 10    # invio pesi, aggiornamento, aggregazione
+    NUM_ROUNDS = 15    # invio pesi, aggiornamento, aggregazione
     MIN_CLIENTS = 2
 
     ENABLE_FEDERATED_EARLY_STOPPING = False    # False: il training prosegue per tutti i round previsti
@@ -327,7 +302,7 @@ GLOBAL_EARLY_STOPPING = None
 class ServerFeatureEngineer:
 
     def add_statistical_features(self, X):
-        """12 statistical features."""
+        """12 statistical features"""
         mean_per_row = np.mean(X, axis=1).reshape(-1, 1)
         std_per_row = np.std(X, axis=1).reshape(-1, 1)
         var_per_row = np.var(X, axis=1).reshape(-1, 1)
@@ -353,9 +328,9 @@ class ServerFeatureEngineer:
         
         return X_enhanced
 
-# CARICAMENTO DATASET PER SERVER CON PREPROCESSING - 🔧 VERSIONE CORRETTA
+# CARICAMENTO DATASET PER SERVER CON PREPROCESSING
 def load_server_data():
-    """Carica dati server con fix dei tipi di dati"""
+    """Carica dati server"""
     print("CARICAMENTO DATASET GLOBALE SERVER")
     config = ServerConfig()
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -384,7 +359,7 @@ def load_server_data():
     # Combina dataset
     df_global = pd.concat(df_list, ignore_index=True)
     X = df_global.drop(columns=["marker"])
-    y = (df_global["marker"] != "Natural").astype(np.float32)  # 🔧 FIX: FLOAT32
+    y = (df_global["marker"] != "Natural").astype(np.float32)
     
     print(f"Dataset grezzo: {len(X)} campioni, {X.shape[1]} feature")
     print(f"Distribuzione: {y.sum():.0f} attacchi ({y.mean()*100:.1f}%)")
@@ -402,8 +377,8 @@ def load_server_data():
     X_scaled = scaler_pca.fit_transform(X)
     
     pca = PCA(n_components=config.PCA_COMPONENTS, random_state=config.RANDOM_SEED)
-    X_pca = pca.fit_transform(X_scaled).astype(np.float32)  # 🔧 FIX: FLOAT32
-    
+    X_pca = pca.fit_transform(X_scaled).astype(np.float32)
+
     variance_explained = pca.explained_variance_ratio_.sum()
     print(f"PCA: {X.shape[1]} → {X_pca.shape[1]} feature")
     print(f"Varianza spiegata: {variance_explained*100:.2f}%")
@@ -412,13 +387,11 @@ def load_server_data():
     print(f"Approccio: usando solo PCA features...")
     X_enhanced = X_pca
     print(f"Features: {X_pca.shape[1]} (solo PCA)")
-    
-    # STEP 4: Normalizzazione finale - 🔧 FIX: TIPI CORRETTI
+
+    # STEP 4: Normalizzazione finale
     print(f"Normalizzazione finale...")
     final_scaler = StandardScaler()
-    X_final = final_scaler.fit_transform(X_enhanced).astype(np.float32)  # 🔧 FIX
-    
-    # 🔧 FIX: Assicurati che le labels siano float32
+    X_final = final_scaler.fit_transform(X_enhanced).astype(np.float32)
     y = y.astype(np.float32)
     
     print(f"Dataset server preparato:")
@@ -429,9 +402,9 @@ def load_server_data():
     
     return X_final, y
 
-# MODELLO SERVER OTTIMIZZATO SCIENTIFICAMENTE CON OPTUNA - 🔧 FIX: METRICHE SEMPLICI
+# MODELLO SERVER OTTIMIZZATO SCIENTIFICAMENTE CON OPTUNA
 def create_server_model(input_shape: int):
-    """Crea modello server ottimizzato con fix delle metriche"""
+    """Crea modello server ottimizzato"""
 
     tf.random.set_seed(42)
     np.random.seed(42)
@@ -556,7 +529,7 @@ def create_server_model(input_shape: int):
             clipnorm=optimized_config.CLIPNORM
         )
     
-    # 🔧 FIX: Compilazione con metriche SEMPLIFICATE che funzionano sempre
+    # Compilazione con metriche 
     model.compile(
         optimizer=optimizer,
         loss=keras.losses.BinaryCrossentropy(),
@@ -564,7 +537,6 @@ def create_server_model(input_shape: int):
             "accuracy",
             keras.metrics.Precision(name="precision"),
             keras.metrics.Recall(name="recall")
-            # 🔧 FIX: Rimosse F1Score e AUC che causavano problemi
         ]
     )
 
@@ -577,14 +549,11 @@ def create_server_model(input_shape: int):
     print(f"Activation: {optimized_config.ACTIVATION_FUNCTION}")
     print(f"BatchNorm: {optimized_config.USE_BATCH_NORM}")
     print(f"Parametri: {model.count_params():,}")
-    print(f"🔧 Metriche: accuracy, precision, recall (versione stabile)")
-    print(f"Compatibilità: 100% con client ottimizzati")
 
     return model
 
-# MODELLO SERVER FALLBACK - 🔧 FIX: METRICHE SEMPLICI
 def create_server_model_fallback(input_shape: int) -> keras.Model:
-    """Crea modello server fallback con fix delle metriche"""
+    """Crea modello server fallback"""
 
     config = ServerConfig()
     tf.random.set_seed(config.RANDOM_SEED)
@@ -654,7 +623,6 @@ def create_server_model_fallback(input_shape: int) -> keras.Model:
         clipnorm=1.0
     )
     
-    # 🔧 FIX: Compilazione con metriche SEMPLIFICATE
     model.compile(
         optimizer=optimizer,
         loss=keras.losses.BinaryCrossentropy(),
@@ -662,7 +630,6 @@ def create_server_model_fallback(input_shape: int) -> keras.Model:
             "accuracy",
             keras.metrics.Precision(name="precision"),
             keras.metrics.Recall(name="recall")
-            # 🔧 FIX: Rimosse F1Score e AUC che causavano problemi
         ]
     )
     
@@ -682,7 +649,7 @@ def weighted_average(metrics):
     if not metrics:
         return {}
     
-    print(f"Aggregating EVALUATE metrics from {len(metrics)} clients...")
+    print(f"Aggregating evaluate metrics from {len(metrics)} clients...")
     
     metrics_sum = {}
     total_examples = 0
@@ -708,7 +675,7 @@ def weighted_average(metrics):
     aggregated['total_clients'] = len(metrics)
     aggregated['total_samples'] = total_examples
 
-    print(f"EVALUATE metrics aggregated: {list(aggregated.keys())}")
+    print(f"evaluate metrics aggregated: {list(aggregated.keys())}")
     return aggregated
 
 def print_client_metrics(fit_results):
@@ -904,8 +871,8 @@ class Strategy(FedAvg):
         return aggregated
     
     def aggregate_evaluate(self, server_round, results, failures):
-        """Aggregazione evaluate con salvataggio metriche globali"""
-        print(f"\n=== AGGREGATE_EVALUATE OTTIMIZZATO ROUND {server_round} (NO EARLY STOPPING) ===")
+        """Aggregazione evaluate con controllo None"""
+        print(f"\n=== AGGREGATE_EVALUATE OTTIMIZZATO ROUND {server_round}===")
         
         # Debug input
         print(f"DEBUG AGGREGATE_EVALUATE Round {server_round}:")
@@ -914,11 +881,17 @@ class Strategy(FedAvg):
 
         aggregated_result = super().aggregate_evaluate(server_round, results, failures)
         
-        # Debug aggregated_result
+        # Debug aggregated_result con controllo None
         print(f"DEBUG aggregated_result:")
         if aggregated_result is not None:
             loss, metrics = aggregated_result
-            print(f" Loss: {loss:.6f}")
+            
+            # Controllo None per loss
+            if loss is not None:
+                print(f" Loss: {loss:.6f}")
+            else:
+                print(f" Loss: None (nessun client ha restituito risultati validi)")
+                
             print(f"Metrics ricevute: {metrics is not None}")
             if metrics:
                 print(f"Metrics keys: {list(metrics.keys())}")
@@ -932,7 +905,7 @@ class Strategy(FedAvg):
             loss, metrics = aggregated_result
             
             global GLOBAL_METRICS_TRACKER
-            if GLOBAL_METRICS_TRACKER and metrics:
+            if GLOBAL_METRICS_TRACKER and metrics and loss is not None:
                 # Aggiunge loss alle metriche
                 eval_metrics = metrics.copy()
                 eval_metrics['global_loss'] = loss
@@ -949,6 +922,7 @@ class Strategy(FedAvg):
                 print(f"DEBUG: NON chiamo tracker perché:")
                 print(f"GLOBAL_METRICS_TRACKER: {GLOBAL_METRICS_TRACKER is not None}")
                 print(f"metrics: {metrics is not None}")
+                print(f"loss: {loss is not None}")
 
         return aggregated_result
 
@@ -962,9 +936,9 @@ def get_evaluate():
         input_shape = X_global.shape[1]
     except Exception as e:
         print(f"Errore caricamento dati server: {e}")
-        X_global = np.random.random((100, 30)).astype(np.float32)  # 🔧 FIX: FLOAT32
-        y_global = np.random.randint(0, 2, 100).astype(np.float32) # 🔧 FIX: FLOAT32
-        input_shape = 30  # 🔧 FIX: 30 invece di 20
+        X_global = np.random.random((100, 30)).astype(np.float32)
+        y_global = np.random.randint(0, 2, 100).astype(np.float32)
+        input_shape = 30
         print("Usando dati fittizi per server")
     
     def evaluate(server_round, parameters, config):
@@ -987,8 +961,8 @@ def get_evaluate():
                 return 1.0, {"error": "weight_mismatch", "global_samples": 0}
             
             model.set_weights(parameters)
-            
-            # 🔧 FIX: Valutazione con metriche corrette
+
+            # Valutazione con metriche corrette
             results = model.evaluate(X_global, y_global, verbose=0)
             loss = results[0]
             accuracy = results[1] if len(results) > 1 else 0.0
@@ -1072,20 +1046,10 @@ def get_evaluate():
 def main():
 
     global GLOBAL_EARLY_STOPPING
-    
-    print(f"\n🚀 AVVIO SERVER FEDERATO OTTIMIZZATO")
+
+    print(f"\nAVVIO SERVER FEDERATO OTTIMIZZATO")
     print("=" * 80)
-    print("CONFIGURAZIONE OTTIMIZZATA:")
-    print("   - Architettura: Ottimizzata per SmartGrid")
-    print("   - Rounds: 200")
-    print("   - 🔧 Fix applicati: Tipi dati, PCA allineato, Metriche semplici")
-    print("=" * 80)
-    print("PARAMETRI OPTUNA:")
-    print("   - Learning Rate: Ottimizzato")
-    print("   - Architettura: Ottimizzata")
-    print("   - Regularization: Ottimizzata")
-    print("   - Optimizer: Ottimizzato")
-    print("   - Activation: Ottimizzata")
+    print("- Architettura: Ottimizzata per SmartGrid")
     print("=" * 80)
     
     config = ServerConfig()
@@ -1116,11 +1080,9 @@ def main():
     
     server_config = fl.server.ServerConfig(num_rounds=config.NUM_ROUNDS)
     
-    print("✅ Server ottimizzato pronto!")
-    print("🔌 Connettere client ottimizzati")
+    print("Server ottimizzato pronto!")
+    print("Connettere client ottimizzati")
     print("\nIl training inizierà quando almeno 2 client saranno connessi.")
-    print("📊 I client useranno automaticamente i parametri ottimizzati!")
-    print("🔧 Fix: Tipi dati, PCA 30, Metriche stabili")
     print("=" * 80)
     
     try:
