@@ -1,7 +1,6 @@
 """
 Ottimizzatore Optuna per SmartGrid Federated Learning
-Author: francescaapellegrino  
-Date: 2025-08-20
+Francesca Pellegrino
 """
 
 import optuna
@@ -26,12 +25,9 @@ import warnings
 from datetime import datetime
 warnings.filterwarnings('ignore')
 
-# ============================================================================
-# 🔧 CONFIGURAZIONE OPTUNA
-# ============================================================================
 
+# CONFIGURAZIONE OPTUNA
 class OptimizationConfig:
-    """Configurazione per ottimizzazione Optuna."""
     
     # Dataset
     CLIENT_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # Client per training optimization
@@ -62,19 +58,15 @@ class OptimizationConfig:
     EPOCHS = 15                   # Fixed per trial speed
     BATCH_SIZE = 32               # Fixed per trial speed
 
-# ============================================================================
-# 📊 DATA LOADER
-# ============================================================================
-
+# DATA LOADER
 class SmartGridDataLoader:
-    """Carica e preprocessa dati SmartGrid per Optuna."""
     
     def __init__(self, config: OptimizationConfig):
         self.config = config
         
     def load_combined_data(self):
-        """Carica dati da multipli client per robustezza."""
-        print("📂 Caricamento dati SmartGrid per ottimizzazione...")
+        """Carica dati da multipli client per robustezza"""
+        print("📂Caricamento dati SmartGrid per ottimizzazione...")
         
         script_dir = os.path.dirname(os.path.abspath(__file__))
         data_dir = os.path.join(script_dir, "..", "..", "data", "SmartGrid")
@@ -102,15 +94,15 @@ class SmartGridDataLoader:
         X = df_combined.drop(columns=["marker"])
         y = (df_combined["marker"] != "Natural").astype(int)
         
-        print(f"📊 Dataset combinato: {len(df_combined)} campioni")
+        print(f"Dataset combinato: {len(df_combined)} campioni")
         print(f"   - Attack ratio: {y.mean()*100:.1f}%")
         print(f"   - Original features: {X.shape[1]}")
         
         return X, y
     
     def preprocess_data(self, X, y):
-        """Preprocessing identico al federato."""
-        print("🔧 Preprocessing dati...")
+        """Preprocessing"""
+        print("Preprocessing dati...")
         
         # 1. Pulizia
         X = X.replace([np.inf, -np.inf], np.nan)
@@ -141,12 +133,8 @@ class SmartGridDataLoader:
         
         return X_train_pca, X_val_pca, y_train, y_val
 
-# ============================================================================
-# 🧠 MODEL BUILDER
-# ============================================================================
-
+# MODEL BUILDER
 class OptimizedModelBuilder:
-    """Costruisce modelli con iperparametri da ottimizzare - VERSIONE CORRETTA."""
     
     def __init__(self, config: OptimizationConfig):
         self.config = config
@@ -154,11 +142,9 @@ class OptimizedModelBuilder:
     def build_model(self, trial, input_shape):
         """
         Costruisce modello con iperparametri suggeriti da Optuna.
-        
         Args:
             trial: Trial Optuna per suggerimenti parametri
-            input_shape: Numero di feature input (20 per PCA)
-            
+            input_shape: Numero di feature input
         Returns:
             tuple: (model, params_dict)
         """
@@ -260,7 +246,7 @@ class OptimizedModelBuilder:
             )
         }
         
-        # 🎯 CONFIGURAZIONE FUNZIONE DI ATTIVAZIONE
+        # CONFIGURAZIONE FUNZIONE DI ATTIVAZIONE
         if params['activation'] == 'leaky_relu':
             activation_fn = lambda: layers.LeakyReLU(alpha=0.1)
             initializer = 'he_normal'
@@ -273,8 +259,8 @@ class OptimizedModelBuilder:
         else:  # relu default
             activation_fn = lambda: layers.Activation('relu')
             initializer = 'he_normal'
-        
-        # 🏗️ COSTRUZIONE ARCHITETTURA OTTIMIZZATA
+
+        # COSTRUZIONE ARCHITETTURA OTTIMIZZATA
         model_layers = [
             # Input layer esplicito
             layers.Input(shape=(input_shape,), name='input_features'),
@@ -355,8 +341,8 @@ class OptimizedModelBuilder:
         
         # Crea modello sequenziale
         model = keras.Sequential(model_layers, name=f'SmartGrid_Optimized_{trial.number}')
-        
-        # 🔧 CONFIGURAZIONE OTTIMIZZATORE
+
+        # CONFIGURAZIONE OTTIMIZZATORE
         if params['optimizer_type'] == 'adamw':
             optimizer = keras.optimizers.AdamW(
                 learning_rate=params['learning_rate'],
@@ -383,7 +369,7 @@ class OptimizedModelBuilder:
                 clipnorm=params['clipnorm']
             )
         
-        # 📊 COMPILAZIONE CON METRICHE COMPLETE
+        # COMPILAZIONE CON METRICHE COMPLETE
         model.compile(
             optimizer=optimizer,
             loss='binary_crossentropy',
@@ -396,8 +382,8 @@ class OptimizedModelBuilder:
                 keras.metrics.AUC(name='auc_pr', curve='PR')  # Precision-Recall AUC
             ]
         )
-        
-        # 📋 AGGIUNGI METADATA AI PARAMETRI
+
+        # AGGIUNGI METADATA AI PARAMETRI
         params.update({
             'model_name': model.name,
             'total_parameters': model.count_params(),
@@ -412,10 +398,10 @@ class OptimizedModelBuilder:
             'optimized_by': 'francescaapellegrino',
             'optuna_trial': trial.number
         })
-        
-        # 🔍 LOG ARCHITETTURA (per debug)
+
+        # LOG ARCHITETTURA (per debug)
         if trial.number % 10 == 0:  # Log ogni 10 trial
-            print(f"\n🏗️ Trial {trial.number} - Architettura costruita:")
+            print(f"\nTrial {trial.number} - Architettura costruita:")
             print(f"   - {params['architecture_summary']}")
             print(f"   - LR: {params['learning_rate']:.6f}")
             print(f"   - L2: {params['l2_reg']:.6f}")
@@ -427,13 +413,10 @@ class OptimizedModelBuilder:
         return model, params
     
     def validate_model_architecture(self, model, params):
-        """
-        Valida che il modello sia costruito correttamente.
-        
+        """Valida che il modello sia costruito correttamente.
         Args:
             model: Modello Keras
             params: Dizionario parametri
-            
         Returns:
             bool: True se valido
         """
@@ -474,12 +457,8 @@ class OptimizedModelBuilder:
             print(f"❌ Model validation failed: {e}")
             return False
 
-# ============================================================================
-# 🎯 OPTUNA OBJECTIVE
-# ============================================================================
-
+# FUNZIONE OBIETTIVO PER OPTUNA 
 class SmartGridObjective:
-    """Funzione obiettivo per Optuna."""
     
     def __init__(self, X_train, X_val, y_train, y_val, config: OptimizationConfig):
         self.X_train = X_train
@@ -491,7 +470,7 @@ class SmartGridObjective:
         self.trial_count = 0
         
     def __call__(self, trial):
-        """Funzione obiettivo chiamata da Optuna."""
+        """Funzione obiettivo chiamata da Optuna"""
         self.trial_count += 1
         
         try:
@@ -575,22 +554,17 @@ class SmartGridObjective:
             print(f"Trial {self.trial_count} fallito: {e}")
             return 0.0
 
-# ============================================================================
-# 🚀 MAIN OPTIMIZATION
-# ============================================================================
-
-def optimize_smartgrid_hyperparameters():
-    """Funzione principale per ottimizzazione."""
-    
-    print("🔬 OTTIMIZZAZIONE SCIENTIFICA SMARTGRID CON OPTUNA")
+# FUNZIONE PRINCIPALE PER L'OTTIMIZZAZIONE
+def optimize_smartgrid_hyperparameters():    
+    print("OTTIMIZZAZIONE SCIENTIFICA SMARTGRID CON OPTUNA")
     print("=" * 70)
-    print(f"📅 Data: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"👤 Utente: francescaapellegrino")
+    print(f"Data: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Utente: Francesca Pellegrino")
     print("=" * 70)
     
     config = OptimizationConfig()
     
-    print(f"⚙️ Configurazione:")
+    print(f"Configurazione:")
     print(f"   - Trial: {config.N_TRIALS}")
     print(f"   - Timeout: {config.TIMEOUT_HOURS}h")
     print(f"   - Metrica obiettivo: {config.OBJECTIVE_METRIC}")
@@ -622,11 +596,11 @@ def optimize_smartgrid_hyperparameters():
         
         # Crea funzione obiettivo
         objective = SmartGridObjective(X_train, X_val, y_train, y_val, config)
-        
-        print(f"\n🚀 Avvio ottimizzazione...")
-        print(f"🎯 Obiettivo: Minimizzare {config.OBJECTIVE_METRIC}")
-        print(f"⏰ Timeout: {config.TIMEOUT_HOURS} ore")
-        
+
+        print(f"\nAvvio ottimizzazione...")
+        print(f"Obiettivo: Minimizzare {config.OBJECTIVE_METRIC}")
+        print(f"Timeout: {config.TIMEOUT_HOURS} ore")
+
         # Esegui ottimizzazione
         study.optimize(
             objective,
@@ -639,11 +613,11 @@ def optimize_smartgrid_hyperparameters():
         best_params = study.best_params
         best_score = study.best_value
         
-        print(f"\n🏆 OTTIMIZZAZIONE COMPLETATA!")
-        print(f"📊 Trial totali: {len(study.trials)}")
-        print(f"🎯 Miglior score: {best_score:.6f}")
-        print(f"🏅 Migliori parametri:")
-        
+        print(f"\nOTTIMIZZAZIONE COMPLETATA!")
+        print(f"Trial totali: {len(study.trials)}")
+        print(f"Miglior score: {best_score:.6f}")
+        print(f"Migliori parametri:")
+
         for param, value in best_params.items():
             if isinstance(value, float):
                 print(f"   {param}: {value:.6f}")
@@ -751,10 +725,8 @@ class OptimizedConfig:
     
     print(f"✅ Config ottimizzata salvata: {config_file}")
     
-    # ✅ FIX: Usa direttamente best_params invece di config
     architecture_summary = f"{best_params['layer1_neurons']}→{best_params['layer2_neurons']}→{best_params['layer3_neurons']}→{best_params['layer4_neurons']}→1"
     
-
 
 if __name__ == "__main__":
     optimize_smartgrid_hyperparameters()
