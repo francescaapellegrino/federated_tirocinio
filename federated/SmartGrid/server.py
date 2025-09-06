@@ -397,7 +397,7 @@ def load_server_data():
     print(f"Dataset server preparato:")
     print(f"Pipeline: {X.shape[1]} → {X_pca.shape[1]} → {X_final.shape[1]} feature")
     print(f"Campioni finali: {len(X_final)}")
-    print(f"🔧 Tipi corretti: X={X_final.dtype}, y={y.dtype}")
+    print(f"Tipi corretti: X={X_final.dtype}, y={y.dtype}")
     print("=" * 70)
     
     return X_final, y

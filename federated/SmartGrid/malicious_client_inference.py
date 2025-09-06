@@ -255,7 +255,7 @@ class MaliciousClient(fl.client.NumPyClient):
             print(f"- Attacco {'RIUSCITO' if attack_success else 'FALLITO'}")
 
             return {
-                "method": "multi_technique",
+                # "method": "multi_technique",
                 "confidence_based_accuracy": float(best_accuracy),
                 "gradient_based_signal": float(grad_signal),
                 "gradient_samples_analyzed": len(gradient_norms) + len(non_member_grads),
@@ -263,8 +263,8 @@ class MaliciousClient(fl.client.NumPyClient):
                 "attack_success": bool(attack_success),
                 "privacy_breach_score": max(0, combined_accuracy - 0.5) * 2,
                 "samples_tested": int(len(self.X_train) + len(self.X_test)),
-                "framework": "enhanced_custom_corrected",
-                "fix_applied": "tensor_shape_correction"
+                # "framework": "enhanced_custom_corrected",
+                # "fix_applied": "tensor_shape_correction"
             }
             
         except Exception as e:
