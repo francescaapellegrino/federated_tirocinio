@@ -255,18 +255,33 @@ class MaliciousClient(fl.client.NumPyClient):
             print(f"- Attacco {'RIUSCITO' if attack_success else 'FALLITO'}")
 
             return {
-                # "method": "multi_technique",
-                "confidence_based_accuracy": float(best_accuracy),
-                "gradient_based_signal": float(grad_signal),
-                "gradient_samples_analyzed": len(gradient_norms) + len(non_member_grads),
-                "combined_accuracy": float(combined_accuracy),
+                "attack_type": "Membership Inference Attack",
                 "attack_success": bool(attack_success),
+                "attack_success_criteria": (
+                    "Considerato successo (1) se combined_accuracy > 0.6"
+                ),
+                "confidence_based_accuracy": float(best_accuracy),
+                "confidence_based_accuracy_explanation": (
+                    "Percentuale di dati per cui l'attacco indovina correttamente la membership. "
+                    "Valore >0.5 indica che l'attacco e migliore del caso random."
+                ),
+                "gradient_based_signal": float(grad_signal),
+                "gradient_signal_explanation": (
+                    "Intensita del segnale ottenuto confrontando i gradienti tra membri e non membri. "
+                ),
+                "gradient_samples_analyzed": int(len(gradient_norms) + len(non_member_grads)),
+                "combined_accuracy": float(combined_accuracy),
+                "combined_accuracy_explanation": (
+                    "Accuratezza media combinando tecniche diverse di attacco. "
+                    "Valore >0.5 indica successo dell attacco."
+                ),
                 "privacy_breach_score": max(0, combined_accuracy - 0.5) * 2,
-                "samples_tested": int(len(self.X_train) + len(self.X_test)),
-                # "framework": "enhanced_custom_corrected",
-                # "fix_applied": "tensor_shape_correction"
+                "privacy_breach_score_explanation": (
+                    "Score calcolato come 2 per (combined_accuracy-0.5), rappresenta il rischio di violazione privacy rispetto al caso random."
+                ),
+                "samples_analyzed": int(len(self.X_train) + len(self.X_test))
             }
-            
+
         except Exception as e:
             print(f"❌ Errore Enhanced MIA: {e}")
             return {
@@ -490,60 +505,43 @@ class MaliciousClient(fl.client.NumPyClient):
             print(f"- Attacco {'RIUSCITO' if attack_success else 'FALLITO'}")
 
             return {
-                "attack_type": "property_inference_attack",
-                "method": "multi_technique",
-                "framework": "statistical",
+                "attack_type": "Property Inference Attack",
                 
                 # Risultati principali
                 "attack_success": bool(attack_success),
+                "attack_success_criteria": (
+                    "Considerato successo (1) se il numero di proprieta rilevate supera la soglia definita nei success_criteria."
+                ),
                 "success_rate": float(success_rate),
+                "success_rate_explanation": (
+                    "Percentuale di proprieta sensibili indovinate rispetto al totale. "
+                ),
                 "properties_detected": int(properties_detected),
                 "total_properties": int(total_properties),
+                "properties_explanation": (
+                    "Numero di proprieta sensibili che l attacco e riuscito a inferire sul totale delle proprieta testate."
+                ),
                 "privacy_breach_level": privacy_breach_level,
+                "privacy_breach_level_explanation": (
+                    "Livello qualitativo di rischio privacy stimato in base al successo dell attacco."
+                ),
                 
                 # Stime attack ratio
                 "estimated_attack_ratio": float(final_attack_ratio_estimate),
                 "actual_attack_ratio": float(actual_attack_ratio),
+                "attack_ratio_explanation": (
+                    "Stima e valore reale della proporzione di dati/utenti colpiti dall attacco."
+                ),
                 "estimation_error": float(estimation_error),
+                "estimation_error_explanation": (
+                    "Errore assoluto tra attack ratio stimato e reale. Piu piccolo e, migliore e la stima dell attaccante."
+                ),
                 "estimation_accuracy": float(estimation_accuracy),
-                
-                # Dettagli tecniche
-                "distribution_analysis": {
-                    "pred_mean": float(pred_mean),
-                    "pred_std": float(pred_std),
-                    "pred_skew": float(pred_skew),
-                    "pred_kurtosis": float(pred_kurtosis),
-                    "distribution_signal": float(distribution_signal)
-                },
-                
-                "clustering_analysis": {
-                    "cluster_separation": float(cluster_separation),
-                    "cluster_variance": float(cluster_variance),
-                    "attack_ratio_v2": float(attack_ratio_v2)
-                },
-                
-                "confidence_analysis": {
-                    "high_confidence_ratio": float(high_confidence_ratio),
-                    "low_confidence_ratio": float(low_confidence_ratio),
-                    "confidence_asymmetry": float(confidence_asymmetry)
-                },
-                
-                "feature_analysis": {
-                    "max_feature_impact": float(max_feature_impact),
-                    "avg_feature_impact": float(avg_feature_impact)
-                },
-                
-                # Metadata
-                "techniques_used": [
-                    "distribution_analysis",
-                    "clustering_simplified", 
-                    "confidence_pattern_analysis",
-                    "feature_perturbation_analysis"
-                ],
-                "sophistication_level": "high_realistic",
+                "estimation_accuracy_explanation": (
+                    "Accuratezza (1-errore relativo) della stima dell'attaccante rispetto al valore reale."
+                ),
+
                 "samples_analyzed": int(len(self.X_test)),
-                "success_criteria": "2_of_6_properties_detected",
-                "threshold_strategy": "realistic_permissive"
             }
             
         except Exception as e:
@@ -863,57 +861,100 @@ class MaliciousClient(fl.client.NumPyClient):
             print(f"- Attack success: {attack_success} ({'✅' if attack_success else '❌'})")
 
             return {
-                "attack_type": "model_inversion",
-                "method": "multi_technique",
-                "framework": "confidence_gradient_statistical",
+                "attack_type": "Model Inversion Attack",
+
+                # Risultato principale
                 "attack_success": bool(attack_success),
-                
+                "attack_success_criteria": (
+                    "Considerato successo (1) se almeno 3 criteri su 4 nei success_criteria sono soddisfatti."
+                ),
+
                 # Confidenze
                 "normal_confidence": float(best_normal_score),
+                "normal_confidence_criteria": (
+                    "Confidenza media per i prototipi normali (non invertiti), usata come baseline."
+                ),
                 "attack_confidence": float(best_attack_score),
+                "attack_confidence_explanation": (
+                    "Confidenza media per i prototipi invertiti (generati dall attacco)."
+                ),
                 "avg_confidence": float(confidence_score),
-                
+                "avg_confidence_explanation": (
+                    "Confidenza media complessiva dei prototipi generati dall'attacco."
+                ),
+
                 # Information leakage
                 "information_leakage_score": float(information_leakage),
+                "information_leakage_score_explanation": (
+                    "Valore aggregato che quantifica il grado di informazione sensibile estratta tramite inversione. "
+                    "Valori >0.5 indicano forte leakage rispetto al baseline."
+                ),
                 "confidence_component": float(confidence_score),
+                "confidence_component_explanation": (
+                    "Componente dovuta al livello di confidenza raggiunto dai prototipi invertiti."
+                ),
                 "separation_component": float(separation_score),
+                "separation_component_explanation": (
+                    "Componente dovuta alla separazione tra prototipi attaccati e prototipi normali (maggiore significa che si distinguono meglio)."
+                ),
                 "distance_component": float(distance_score),
-                
+                "distance_component_explanation": (
+                    "Componente dovuta alla distanza (L2) tra prototipi normali e invertiti; valori bassi indicano forte somiglianza."
+                ),
+
                 # Analisi campioni
                 "high_conf_normal_samples": int(len(high_conf_normal)),
+                "high_conf_normal_samples_explanation": (
+                    "Numero di prototipi normali che superano la soglia di confidenza baseline."
+                ),
                 "high_conf_attack_samples": int(len(high_conf_attack)),
+                "high_conf_attack_samples_explanation": (
+                    "Numero di prototipi invertiti che superano la soglia di confidenza attacco."
+                ),
                 "normal_threshold_used": str(normal_threshold_used),
+                "normal_threshold_explanation": (
+                    "Soglia di confidenza usata per considerare un prototipo normale."
+                ),
                 "attack_threshold_used": str(attack_threshold_used),
-                
+                "attack_threshold_explanation": (
+                    "Soglia di confidenza usata per considerare un prototipo invertito."
+                ),
+
                 # Analisi prototipi
                 "prototype_separation": float(prototype_separation),
+                "prototype_separation_explanation": (
+                    "Distanza media (in spazio feature) tra i prototipi normali e quelli invertiti."
+                ),
                 "prototype_l2_distance": float(prototype_l2_distance),
+                "prototype_l2_distance_explanation": (
+                    "Distanza euclidea media tra prototipi normali e invertiti."
+                ),
                 "prototype_cosine_similarity": float(prototype_cosine_similarity),
+                "prototype_cosine_similarity_explanation": (
+                    "Similarita coseno media tra prototipi normali e invertiti; valori vicini a 1 indicano grande somiglianza."
+                ),
                 "best_normal_method": str(best_normal_method),
+                "best_normal_method_explanation": (
+                    "Tecnica che ha prodotto i migliori prototipi normali."
+                ),
                 "best_attack_method": str(best_attack_method),
-                
-                # Criteri di successo
+                "best_attack_method_explanation": (
+                    "Tecnica che ha prodotto i migliori prototipi invertiti."
+                ),
+
+                # Criteri di successo (esplicativi)
                 "success_criteria": {
                     "confidence_criterion": bool(confidence_criterion),
+                    "confidence_criterion_explanation": "Vero se la confidenza dei prototipi invertiti supera la soglia stabilita.",
                     "separation_criterion": bool(separation_criterion),
+                    "separation_criterion_explanation": "Vero se la separazione tra prototipi invertiti e normali e sufficiente.",
                     "leakage_criterion": bool(leakage_criterion),
+                    "leakage_criterion_explanation": "Vero se l information leakage score supera la soglia.",
                     "sample_criterion": bool(sample_criterion),
+                    "sample_criterion_explanation": "Vero se il numero di campioni invertiti ad alta confidenza e significativo.",
                     "total_successful": int(successful_criteria),
-                    "total_criteria": 4,
-                    "success_threshold": 3
                 },
-                
-                # Tecniche utilizzate
-                "techniques_used": [
-                    "adaptive_confidence_thresholding",
-                    "multi_prototype_generation",
-                    "gradient_based_refinement",
-                    "prototype_evaluation",
-                    "separability_analysis"
-                ],
-                "sophistication_level": "very_high",
                 "samples_analyzed": int(len(self.X_test)),
-                "prototypes_generated": len(normal_prototypes) + len(attack_prototypes)
             }
             
         except Exception as e:
@@ -927,144 +968,9 @@ class MaliciousClient(fl.client.NumPyClient):
                 "error": str(e),
                 "method": "emergency_fallback"
             }
-        
-    def model_behavior_analysis(self):
-        """Analisi comportamento del modello"""
-        print("Model Behavior Analysis...")
-        
-        try:
-            # Analizza stabilità su porzioni diverse del test set
-            portion_size = 30
-            max_portions = min(5, len(self.X_test) // portion_size)
-            
-            if max_portions == 0:
-                # Fallback per dataset piccoli
-                max_portions = 1
-                portion_size = len(self.X_test)
-            
-            test_portions = []
-            for i in range(max_portions):
-                start_idx = i * portion_size
-                end_idx = min((i + 1) * portion_size, len(self.X_test))
-                if end_idx > start_idx:
-                    test_portions.append(self.X_test[start_idx:end_idx])
-            
-            # Calcola consistency scores per ogni porzione
-            consistency_scores = []
-            prediction_means = []
-            prediction_stds = []
-            
-            for i, portion in enumerate(test_portions):
-                if len(portion) > 0:
-                    preds = self.model.predict(portion, verbose=0).flatten()
-                    
-                    # Confidence score medio per questa porzione
-                    avg_conf = np.mean(np.maximum(preds, 1 - preds))
-                    consistency_scores.append(avg_conf)
-                    
-                    # Statistiche predizioni
-                    pred_mean = np.mean(preds)
-                    pred_std = np.std(preds)
-                    prediction_means.append(pred_mean)
-                    prediction_stds.append(pred_std)
-                    
-                    print(f"Porzione {i+1}: {len(portion)} campioni, confidence={avg_conf:.3f}")
-            
-            # Analisi stabilità comportamentale
-            if len(consistency_scores) > 1:
-                behavior_variance = np.var(consistency_scores)
-                model_stability = 1.0 - min(behavior_variance * 10, 1.0)  # Normalizza
-                
-                # Analizza coerenza delle predizioni tra porzioni
-                mean_variance = np.var(prediction_means) if len(prediction_means) > 1 else 0.0
-                std_variance = np.var(prediction_stds) if len(prediction_stds) > 1 else 0.0
-                
-                # Calcola score di consistenza comportamentale
-                behavioral_consistency = 1.0 - min((mean_variance + std_variance) * 5, 1.0)
-                
-            else:
-                # Fallback per un'unica porzione
-                behavior_variance = 0.0
-                model_stability = 1.0
-                behavioral_consistency = 1.0
-                mean_variance = 0.0
-                std_variance = 0.0
-            
-            # Analisi pattern temporali (se applicabile)
-            # Simula analisi di drift temporale
-            temporal_drift = 0.0
-            if len(consistency_scores) >= 3:
-                # Calcola trend nelle confidence scores
-                x = np.arange(len(consistency_scores))
-                trend_slope = np.polyfit(x, consistency_scores, 1)[0]
-                temporal_drift = abs(trend_slope)
-            
-            # Insights estratti dal comportamento
-            insights_extracted = 0
-            insights_list = []
-            
-            # Insight 1: Stabilità modello
-            if model_stability > 0.8:
-                insights_extracted += 1
-                insights_list.append("high_stability")
-            
-            # Insight 2: Consistenza comportamentale
-            if behavioral_consistency > 0.7:
-                insights_extracted += 1
-                insights_list.append("behavioral_consistency")
-            
-            # Insight 3: Presenza di drift temporale
-            if temporal_drift > 0.05:
-                insights_extracted += 1
-                insights_list.append("temporal_drift_detected")
-            
-            # Determina successo dell'analisi
-            analysis_success = insights_extracted >= 1 and len(consistency_scores) > 0
-            
-            # Implicazioni privacy
-            privacy_implications = "Model behavior reveals training characteristics"
-            if temporal_drift > 0.1:
-                privacy_implications += " with temporal patterns"
-            if behavioral_consistency < 0.5:
-                privacy_implications += " and inconsistent responses"
-            
-            print(f"Risultati Model Behavior Analysis:")
-            print(f"- Porzioni analizzate: {len(test_portions)}")
-            print(f"- Stabilità modello: {model_stability:.3f}")
-            print(f"- Consistenza comportamentale: {behavioral_consistency:.3f}")
-            print(f"- Drift temporale: {temporal_drift:.3f}")
-            print(f"- Insights estratti: {insights_extracted}")
-            print(f"- Analisi {'RIUSCITA' if analysis_success else 'PARZIALE'}")
-            
-            return {
-                "analysis_type": "model_behavior",
-                "behavior_consistency_scores": [float(x) for x in consistency_scores],
-                "behavior_variance": float(behavior_variance),
-                "model_stability": float(model_stability),
-                "behavioral_consistency": float(behavioral_consistency),
-                "temporal_drift": float(temporal_drift),
-                "prediction_means": [float(x) for x in prediction_means],
-                "prediction_stds": [float(x) for x in prediction_stds],
-                "analysis_success": bool(analysis_success),
-                "insights_extracted": int(insights_extracted),
-                "insights_list": insights_list,
-                "privacy_implications": privacy_implications,
-                "portions_analyzed": int(len(test_portions)),
-                "samples_per_portion": int(portion_size),
-                "framework": "custom_behavioral_analysis"
-            }
-            
-        except Exception as e:
-            print(f"Model Behavior Analysis failed: {e}")
-            return {
-                "analysis_type": "model_behavior",
-                "analysis_success": False,
-                "error": str(e),
-                "method": "emergency_fallback"
-            }   
 
     def execute_attacks(self):
-        """Esegue i 4 attacchi: Membership Inference + Property Inference + Model Inversion, ed esegue l'analisi del comportamento del modello"""
+        """Esegue i 4 attacchi: Membership Inference + Property Inference + Model Inversion"""
         results = {}
         try:
             if not self.is_malicious:
@@ -1084,10 +990,12 @@ class MaliciousClient(fl.client.NumPyClient):
             print(f"\nModel Inversion Attack...")
             results['model_inversion'] = self.model_inversion_attack()
             
+            """
             # 4. Model Behavior Analysis
             print(f"\nModel Behavior Analysis...")
             results['model_behavior'] = self.model_behavior_analysis()
-            
+            """
+
             # Riassunto con 3 attacchi
             successful_attacks = 0
             total_attacks = 3
@@ -1118,25 +1026,33 @@ class MaliciousClient(fl.client.NumPyClient):
             else:
                 severity = "LOW"
             
+            from datetime import datetime
+
             results['attack_summary'] = {
-                'total_attacks_attempted': total_attacks,
-                'successful_attacks': successful_attacks,
-                'attack_success_rate': float(successful_attacks / total_attacks),
-                'privacy_risk_score': float(privacy_risk_score),
-                'severity_level': severity,
-                'client_id': int(self.client_id),
-                'timestamp': datetime.now().isoformat(),
-                'federated_learning_compromised': successful_attacks >= 3,
-                'privacy_preserving_needed': True,
-                'attack_version': 'final',
-                'attacks_implemented': [
-                    'membership_inference',
-                    'property_inference', 
-                    'model_inversion',
-                    # 'model_behavior'
-                ],
-                'theoretical_completeness': '3/3_attacks_implemented',
-                'thesis_ready': True
+                "total_attacks_attempted": total_attacks,
+                "total_attacks_explanation": (
+                    "Numero totale di tipologie di attacco privacy testate su questo client."
+                ),
+                "successful_attacks": successful_attacks,
+                "successful_attacks_explanation": (
+                    "Numero di attacchi che hanno superato il criterio di successo e rappresentano un rischio concreto per la privacy."
+                ),
+                "attack_success_rate": float(successful_attacks / total_attacks),
+                "attack_success_rate_explanation": (
+                    "Frazione di attacchi riusciti sul totale di quelli tentati. Valori vicini a 1 indicano alta vulnerabilita."
+                ),
+                "privacy_risk_score": float(privacy_risk_score),
+                "privacy_risk_score_explanation": (
+                    "Indice aggregato (calcolato per combinare i risultati di tutti gli attacchi) che misura il rischio privacy complessivo per il client."
+                ),
+                "client_id": int(self.client_id),
+                "client_id_explanation": (
+                    "Identificativo numerico del client federato a cui si riferiscono gli attacchi."
+                ),
+                "federated_learning_compromised": successful_attacks >= 3,
+                "federated_learning_compromised_explanation": (
+                    "True se tutte le principali tipologie di attacco hanno avuto successo, segnalando che il sistema federato e compromesso dal punto di vista privacy."
+                )
             }
 
             print(f"\nSUMMARY 3 ATTACCHI COMPLETI {self.client_id}:")

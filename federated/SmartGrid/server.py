@@ -189,7 +189,7 @@ class ServerConfig:
     TOTAL_FEATURES = 30
 
     # Server specific
-    NUM_ROUNDS = 15    # invio pesi, aggiornamento, aggregazione
+    NUM_ROUNDS = 50    # invio pesi, aggiornamento, aggregazione
     MIN_CLIENTS = 2
 
     ENABLE_FEDERATED_EARLY_STOPPING = False    # False: il training prosegue per tutti i round previsti
