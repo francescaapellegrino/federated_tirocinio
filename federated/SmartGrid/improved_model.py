@@ -1,6 +1,5 @@
 """
-Modello Migliorato COMPATIBILE al 100%
-Garantisce compatibilità totale con sistema esistente
+Modello SmartGrid
 Francesca Pellegrino
 """
 
@@ -8,11 +7,8 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 
+# Creazione modello migliorato
 def create_improved_model(input_shape: int, config=None):
-    """
-    Crea modello migliorato ma COMPATIBILE al 100%
-    Garantisce: input_shape = 30, architettura compatibile, optimizer compatibile
-    """
     
     # VERIFICA COMPATIBILITÀ INPUT
     if input_shape != 30:
@@ -22,34 +18,32 @@ def create_improved_model(input_shape: int, config=None):
     tf.random.set_seed(42)
     np.random.seed(42)
     
-    print(f"🔧 MODELLO MIGLIORATO COMPATIBILE:")
+    print(f"🔧 MODELLO:")
     print(f"   📐 Input garantito: {input_shape} features")
-    print(f"   🎯 Target: >90% accuracy, precision, recall, f1-score")
-    print(f"   ✅ Compatibilità: 100% con sistema esistente")
     
-    # CONFIGURAZIONE MIGLIORATA ma COMPATIBILE
+    # CONFIGURAZIONE
     class CompatibleImprovedConfig:
-        # Architettura migliorata (ispirata al Kaggle)
+        # Architettura
         HIDDEN_LAYERS = [256, 128, 64, 32]  # Più ampia del sistema attuale
         DROPOUT_RATES = [0.3, 0.4, 0.3, 0.2]  # Dropout progressivo
-        
-        # Parametri ottimizzati per convergenza verso 90%
+
+        # Parametri per convergenza
         LEARNING_RATE = 0.0015  # Più conservativo per stabilità
         L2_REG = 0.0001  # Regularization moderata
         
-        # Ottimizzazioni avanzate ma compatibili
+        # Ottimizzazioni avanzate
         USE_BATCH_NORM = True
-        ACTIVATION = 'relu'  # Mantieni relu per compatibilità
+        ACTIVATION = 'relu'
         
-        # Optimizer COMPATIBILE (importante!)
-        OPTIMIZER = 'adam_compatible'  # Usa versione compatibile
+        # Optimizer
+        OPTIMIZER = 'adam_compatible'
         BETA_1 = 0.9
         BETA_2 = 0.999
         CLIPNORM = 1.0
     
     improved_config = CompatibleImprovedConfig()
     
-    # Costruzione modello COMPATIBILE
+    # Costruzione modello 
     model = keras.Sequential([
         # Input layer
         keras.layers.Input(shape=(input_shape,), name="input_features"),
@@ -107,15 +101,14 @@ def create_improved_model(input_shape: int, config=None):
         )
     ], name="SmartGrid_Improved_Compatible")
     
-    # OPTIMIZER COMPATIBILE (risolve l'errore "lr")
+    # OPTIMIZER
     optimizer = keras.optimizers.Adam(
-        learning_rate=improved_config.LEARNING_RATE,  # Usa learning_rate (nuovo)
+        learning_rate=improved_config.LEARNING_RATE,
         beta_1=improved_config.BETA_1,
         beta_2=improved_config.BETA_2,
         clipnorm=improved_config.CLIPNORM
     )
     
-    # LOSS MIGLIORATA per dataset sbilanciato
     def weighted_binary_crossentropy(pos_weight=2.0):
         """Loss pesata per migliorare recall mantenendo precision"""
         def loss_fn(y_true, y_pred):
@@ -149,32 +142,28 @@ def create_improved_model(input_shape: int, config=None):
         ]
     )
     
-    print(f"🎯 MODELLO MIGLIORATO COMPATIBILE CREATO:")
+    print(f"🎯 MODELLO CREATO:")
     print(f"   📐 Architettura: {' → '.join(map(str, improved_config.HIDDEN_LAYERS))} → 1")
     print(f"   🎛️ Parametri totali: {model.count_params():,}")
     print(f"   🧠 Activation: {improved_config.ACTIVATION}")
-    print(f"   ⚡ Optimizer: Adam (compatibile)")
-    print(f"   🎯 Loss: Weighted Binary Crossentropy (per dataset sbilanciato)")
-    print(f"   📊 Target: >90% su tutte le metriche")
-    print(f"   ✅ Compatibilità: Garantita al 100%")
     
     return model
 
 def create_advanced_callbacks(config=None):
-    """Callbacks avanzati COMPATIBILI per training ottimizzato"""
+    """Callbacks avanzati per training ottimizzato"""
     
     callbacks = [
         # Early Stopping più paziente
         keras.callbacks.EarlyStopping(
             monitor='val_loss',
-            patience=12,  # Più paziente per permettere convergenza
+            patience=12,
             restore_best_weights=True,
             verbose=1,
             mode='min',
             min_delta=0.0001
         ),
-        
-        # Learning Rate Scheduler COMPATIBILE
+
+        # Learning Rate Scheduler
         keras.callbacks.ReduceLROnPlateau(
             monitor='val_loss',
             factor=0.7,  # Riduzione moderata
@@ -183,17 +172,17 @@ def create_advanced_callbacks(config=None):
             verbose=1,
             mode='min'
         ),
-        
-        # Learning Rate Decay COMPATIBILE
+
+        # Learning Rate Decay
         keras.callbacks.LearningRateScheduler(
             lambda epoch: 0.0015 * (0.95 ** epoch),  # Decay graduale
             verbose=0
         )
     ]
     
-    print(f"📊 CALLBACKS AVANZATI COMPATIBILI:")
-    print(f"   🛑 EarlyStopping: patience=12, min_delta=0.0001")
-    print(f"   📉 ReduceLROnPlateau: factor=0.7, patience=5")
-    print(f"   📈 LearningRateScheduler: exponential decay")
-    
+    print(f"📊 CALLBACKS:")
+    print(f"EarlyStopping: patience=12, min_delta=0.0001")
+    print(f"ReduceLROnPlateau: factor=0.7, patience=5")
+    print(f"LearningRateScheduler: exponential decay")
+
     return callbacks

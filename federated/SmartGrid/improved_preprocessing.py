@@ -1,6 +1,5 @@
 """
-Preprocessing Migliorato COMPATIBILE al 100%
-Garantisce esattamente le stesse dimensioni del sistema esistente
+Preprocessing SmartGrid
 Francesca Pellegrino
 """
 
@@ -16,13 +15,11 @@ from scipy import stats
 import warnings
 warnings.filterwarnings('ignore')
 
+# Preprocessing
 def load_improved_client_data(client_id: int, config):
-    """
-    Versione migliorata COMPATIBILE che garantisce ESATTAMENTE 30 features finali
-    """
-    print(f"\n🔧 PREPROCESSING MIGLIORATO COMPATIBILE CLIENT {client_id}")
+    print(f"\n🔧 PREPROCESSING {client_id}")
     
-    # 1. Caricamento (identico all'originale)
+    # 1. Caricamento
     import os
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, "..", "..", "data", "SmartGrid", f"data{client_id}.csv")
@@ -37,7 +34,7 @@ def load_improved_client_data(client_id: int, config):
     print(f"   📊 Dati raw: {X.shape[0]} campioni, {X.shape[1]} features")
     print(f"   📊 Attack ratio: {y.mean()*100:.1f}%")
     
-    # 2. PULIZIA AVANZATA (miglioramento interno)
+    # 2. PULIZIA AVANZATA
     print(f"   🧹 Pulizia avanzata...")
     
     # Rimuovi colonne con troppi NaN
@@ -68,8 +65,8 @@ def load_improved_client_data(client_id: int, config):
     
     print(f"      ✅ Pulizia completata: {X.shape[1]} features pulite")
     
-    # 3. FEATURE ENGINEERING INTELLIGENTE (miglioramento interno)
-    print(f"   ⚙️ Feature engineering intelligente...")
+    # 3. FEATURE ENGINEERING
+    print(f"   ⚙️ Feature engineering...")
     
     # Crea feature statistiche temporanee per migliorare la selezione
     X_temp = X.copy()
@@ -104,14 +101,14 @@ def load_improved_client_data(client_id: int, config):
     
     print(f"      ✅ Feature engineering: {X.shape[1]} → {X_temp.shape[1]} features temporanee")
     
-    # 4. OUTLIER REMOVAL INTELLIGENTE (miglioramento interno)
-    print(f"   🎯 Outlier removal intelligente...")
+    # 4. OUTLIER REMOVAL
+    print(f"   🎯 Outlier removal...")
     
     # Isolation Forest sui dati normali
     normal_mask = (y == 0)
     if normal_mask.sum() > 50:
         iso_forest = IsolationForest(
-            contamination=0.05,  # Rimuovi solo 5% outliers (conservativo)
+            contamination=0.05,
             random_state=42,
             n_jobs=-1
         )
@@ -128,7 +125,7 @@ def load_improved_client_data(client_id: int, config):
         outlier_indices = normal_indices[normal_outliers]
         keep_mask[outlier_indices] = False
         
-        # Mantieni tutti gli attacks (importante!)
+        # Mantieni tutti gli attacks
         attack_mask = (y == 1)
         keep_mask[attack_mask] = True
         
@@ -140,8 +137,8 @@ def load_improved_client_data(client_id: int, config):
     else:
         print(f"      ⚠️ Troppi pochi dati normali per outlier detection")
     
-    # 5. SCALING ROBUSTO (miglioramento interno)
-    print(f"   📏 Scaling robusto...")
+    # 5. SCALING
+    print(f"   📏 Scaling...")
     
     # RobustScaler per robustezza agli outliers
     robust_scaler = RobustScaler()
@@ -153,8 +150,8 @@ def load_improved_client_data(client_id: int, config):
     
     print(f"      ✅ RobustScaler + MinMaxScaler applicati")
     
-    # 6. SELEZIONE INTELLIGENTE DELLE MIGLIORI FEATURE
-    print(f"   🎯 Selezione intelligente features...")
+    # 6. SELEZIONE DELLE MIGLIORI FEATURE
+    print(f"   🎯 Selezione features...")
     
     # Combina f_classif e mutual_info per selezione robusta
     n_features_target = min(60, X_scaled.shape[1])  # Seleziona fino a 60 features
@@ -177,8 +174,8 @@ def load_improved_client_data(client_id: int, config):
         X_selected = X_scaled
         print(f"      ℹ️ Features {X_scaled.shape[1]} <= target, skip selezione")
     
-    # 7. PCA con ESATTAMENTE 30 componenti (GARANZIA COMPATIBILITÀ)
-    print(f"   🔍 PCA garantito 30 componenti...")
+    # 7. PCA con 30 componenti
+    print(f"   🔍 PCA 30 componenti...")
     
     n_samples, n_features = X_selected.shape
     n_components_target = 30  # FISSO per compatibilità
@@ -187,7 +184,7 @@ def load_improved_client_data(client_id: int, config):
     pca = PCA(n_components=max_components, random_state=42)
     X_pca = pca.fit_transform(X_selected)
     
-    # GARANZIA: Esattamente 30 componenti
+    # 30 componenti
     if X_pca.shape[1] != 30:
         if X_pca.shape[1] > 30:
             # Prendi solo i primi 30
@@ -206,7 +203,7 @@ def load_improved_client_data(client_id: int, config):
     # VERIFICA FINALE COMPATIBILITÀ
     assert X_pca.shape[1] == 30, f"ERRORE: Features finali {X_pca.shape[1]} != 30"
     
-    # 8. Split stratificato (identico all'originale)
+    # 8. Split stratificato
     print(f"   ✂️ Split stratificato...")
     
     # Verifica distribuzione classi
@@ -233,7 +230,7 @@ def load_improved_client_data(client_id: int, config):
         stratify=stratify_temp
     )
     
-    # 9. Normalizzazione finale post-split (IMPORTANTE!)
+    # 9. Normalizzazione finale post-split
     print(f"   📏 Normalizzazione finale...")
     final_scaler = StandardScaler()
     X_train_final = final_scaler.fit_transform(X_train).astype(np.float32)
@@ -250,7 +247,7 @@ def load_improved_client_data(client_id: int, config):
     assert X_val_final.shape[1] == 30, f"ERRORE VAL: {X_val_final.shape[1]} features"
     assert X_test_final.shape[1] == 30, f"ERRORE TEST: {X_test_final.shape[1]} features"
     
-    print(f"   ✅ COMPATIBILITÀ GARANTITA:")
+    print(f"   ✅ COMPATIBILITÀ:")
     print(f"      🔹 Train: {len(X_train_final)} campioni, {X_train_final.shape[1]} features")
     print(f"      🔹 Val: {len(X_val_final)} campioni, {X_val_final.shape[1]} features")
     print(f"      🔹 Test: {len(X_test_final)} campioni, {X_test_final.shape[1]} features")
@@ -272,7 +269,7 @@ def load_improved_client_data(client_id: int, config):
         'advanced_scaling': True,
         'compatibility_guaranteed': True
     }
-    
-    print(f"✅ PREPROCESSING MIGLIORATO COMPATIBILE COMPLETATO!")
-    
+
+    print(f"✅ PREPROCESSING COMPLETATO!")
+
     return X_train_final, y_train, X_val_final, y_val, X_test_final, y_test, dataset_info

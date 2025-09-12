@@ -23,17 +23,16 @@ GLOBAL_METRICS_TRACKER = None
 
 # CONFIGURAZIONE SERVER ADATTATA AI CLIENT
 class AdaptedServerConfig:
-    """Configurazione server che matcha i client_nuovo.py"""
     
-    # ARCHITETTURA IDENTICA AI CLIENT MIGLIORATI
-    HIDDEN_LAYERS = [256, 128, 64, 32]  # Matcha improved_model.py
-    DROPOUT_RATES = [0.3, 0.4, 0.3, 0.2]  # Matcha improved_model.py
+    # ARCHITETTURA
+    HIDDEN_LAYERS = [256, 128, 64, 32]  
+    DROPOUT_RATES = [0.3, 0.4, 0.3, 0.2]  
     
-    # PARAMETRI OTTIMIZZATI per convergenza verso 90%
-    LEARNING_RATE = 0.0015  # Matcha improved_model.py
-    L2_REG = 0.0001  # Matcha improved_model.py
-    
-    # CONFIGURAZIONE IDENTICA
+    # PARAMETRI
+    LEARNING_RATE = 0.0015
+    L2_REG = 0.0001
+
+    # CONFIGURAZIONE 
     USE_BATCH_NORM = True
     ACTIVATION = 'relu'
     OPTIMIZER_TYPE = 'adam'
@@ -41,17 +40,17 @@ class AdaptedServerConfig:
     BETA_2 = 0.999
     CLIPNORM = 1.0
     
-    # Data preprocessing (deve matchare client)
+    # Data preprocessing
     PCA_COMPONENTS = 30
-    TOTAL_FEATURES = 30  # Garantito dal preprocessing
+    TOTAL_FEATURES = 30
 
     # Server specific
-    NUM_ROUNDS = 15
+    NUM_ROUNDS = 200
     MIN_CLIENTS = 2
-    VERSION = "adapted_to_client_nuovo"
+    VERSION = "2.0"
     RANDOM_SEED = 42
 
-# TRACKER PER LE METRICHE (IDENTICO)
+# TRACKER PER LE METRICHE
 class CompleteMetricsTracker:
     def __init__(self):
         self.round_metrics = {}
@@ -65,10 +64,10 @@ class CompleteMetricsTracker:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.output_file = os.path.join(script_dir, f"metrics_complete_report_{timestamp}.txt")
         
-        print(f"📊 CompleteMetricsTracker inizializzato: {self.output_file}")
+        print(f"CompleteMetricsTracker inizializzato: {self.output_file}")
     
     def add_round_metrics(self, round_num: int, fit_metrics: Dict = None, evaluate_metrics: Dict = None):
-        """Aggiunge metriche per un round specifico con MAPPING COMPLETO"""
+        """Aggiunge metriche per un round specifico"""
         try:
             # Inizializza round
             if round_num not in self.round_metrics:
@@ -79,7 +78,7 @@ class CompleteMetricsTracker:
                     'global_specificity': None, 'global_sensitivity': None
                 }
             
-            # AGGIUNGI METRICHE DAI CLIENT (FIT) - MAPPING COMPLETO
+            # AGGIUNGI METRICHE DAI CLIENT (FIT)
             if fit_metrics:
                 # Validation loss dai client
                 if 'val_loss' in fit_metrics:
@@ -91,9 +90,9 @@ class CompleteMetricsTracker:
                     'val_precision': 'global_precision', 
                     'val_recall': 'global_recall',
                     'val_f1_score': 'global_f1_score',
-                    'val_auc_roc': 'global_auc_roc',          # *** AGGIUNTA ***
-                    'val_specificity': 'global_specificity',  # *** AGGIUNTA ***
-                    'val_sensitivity': 'global_sensitivity'   # *** AGGIUNTA ***
+                    'val_auc_roc': 'global_auc_roc',
+                    'val_specificity': 'global_specificity',
+                    'val_sensitivity': 'global_sensitivity'
                 }
                 
                 for client_metric, global_metric in client_to_global_mapping.items():
@@ -106,10 +105,10 @@ class CompleteMetricsTracker:
                 for metric in ['global_accuracy', 'global_precision', 'global_recall', 
                             'global_f1_score', 'global_auc_roc', 'global_specificity', 'global_sensitivity']:
                     if metric in evaluate_metrics:
-                        # Privilegia evaluate su fit (più preciso)
+                        # Privilegia evaluate su fit
                         self.round_metrics[round_num][metric] = evaluate_metrics[metric]
             
-            # Debug migliorato
+            # Debug
             available_metrics = [k for k, v in self.round_metrics[round_num].items() 
                             if v is not None and k != 'timestamp']
             print(f"✅ Round {round_num}: {len(available_metrics)} metriche salvate: {available_metrics}")
@@ -127,12 +126,8 @@ class CompleteMetricsTracker:
             with open(self.output_file, 'w', encoding='utf-8') as f:
                 f.write("RESOCONTO ADDESTRAMENTO FEDERATO SMARTGRID\n")
                 f.write("=" * 80 + "\n")
-                f.write(f"Progetto: SmartGrid False Data Injection Attack Detection\n")
-                f.write(f"Autore: Francesca Pellegrino\n")
-                f.write(f"Data: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 f.write(f"Rounds completati: {len(self.round_metrics)}\n")
                 f.write(f"Framework: Flower Federated Learning\n")
-                f.write(f"Architettura: [256, 128, 64, 32] → 1 (Improved Kaggle Style)\n")
                 f.write("=" * 80 + "\n")
                 
                 self._write_summary_table(f)
@@ -210,7 +205,7 @@ class CompleteMetricsTracker:
         
         f.write(f"\nADDESTRAMENTO COMPLETATO!\n")
 
-# CARICAMENTO DATASET SERVER (IDENTICO AI CLIENT)
+# CARICAMENTO DATASET SERVER
 def load_server_data():
     """Carica dati server con preprocessing identico ai client"""
     print("📂 CARICAMENTO DATASET GLOBALE SERVER")
@@ -282,10 +277,10 @@ def load_server_data():
     
     return X_final, y
 
-# MODELLO SERVER IDENTICO AI CLIENT
+# MODELLO SERVER
 def create_server_model(input_shape: int):
     """
-    Crea modello server IDENTICO ai client_nuovo.py
+    Crea modello server come ai client
     ARCHITETTURA: [256, 128, 64, 32] → 1
     """
     
@@ -298,12 +293,11 @@ def create_server_model(input_shape: int):
     
     config = AdaptedServerConfig()
     
-    print(f"🔧 MODELLO SERVER IDENTICO AI CLIENT:")
-    print(f"   📐 Input garantito: {input_shape} features")
+    print(f"🔧 MODELLO SERVER:")
+    print(f"   📐 Input: {input_shape} features")
     print(f"   🎯 Architettura: {' → '.join(map(str, config.HIDDEN_LAYERS))} → 1")
-    print(f"   ✅ Compatibilità: 100% con client_nuovo.py")
     
-    # ARCHITETTURA IDENTICA A improved_model.py
+    # ARCHITETTURA
     model = keras.Sequential([
         # Input layer
         keras.layers.Input(shape=(input_shape,), name="input_features"),
@@ -352,14 +346,14 @@ def create_server_model(input_shape: int):
         keras.layers.BatchNormalization(name="batch_norm_4") if config.USE_BATCH_NORM else keras.layers.Identity(),
         keras.layers.Dropout(config.DROPOUT_RATES[3], name="dropout_4"),
         
-        # Output layer (identico)
+        # Output layer 
         keras.layers.Dense(
             1, 
             activation="sigmoid",
             kernel_initializer="glorot_uniform",
             name="output"
         )
-    ], name="SmartGrid_Server_Adapted")
+    ], name="SmartGrid_Server")
     
     # OPTIMIZER IDENTICO AI CLIENT
     optimizer = keras.optimizers.Adam(
@@ -405,17 +399,14 @@ def create_server_model(input_shape: int):
     print(f"   🎛️ Parametri totali: {model.count_params():,}")
     print(f"   🧠 Activation: {config.ACTIVATION}")
     print(f"   ⚡ Optimizer: Adam (learning_rate={config.LEARNING_RATE})")
-    print(f"   🎯 Loss: Weighted Binary Crossentropy (pos_weight=2.5)")
-    print(f"   📊 Metriche: accuracy, precision, recall, f1_score, auc_roc, auc_pr")
-    print(f"   ✅ Compatibilità: Garantita al 100% con client_nuovo.py")
-    
+
     return model
 
-# AGGREGAZIONE SICURA DELLE METRICHE
+# AGGREGAZIONE DELLE METRICHE
 def weighted_average(metrics):
     """Aggregazione sicura delle metriche evaluate"""
     if not metrics:
-        print("ℹ️ Nessuna metrica da aggregare")
+        print("Nessuna metrica da aggregare")
         return {}
     
     print(f"🔄 Aggregating evaluate metrics from {len(metrics)} clients...")
@@ -483,10 +474,10 @@ def print_client_metrics(fit_results):
         if 'all_targets_met' in client_metrics:
             if client_metrics['all_targets_met']:
                 targets_met_count += 1
-                print(f"      🎉 TUTTI I TARGET >90% RAGGIUNTI!")
+                print(f"Target raggiunto!")
             else:
-                print(f"      ⚠️ Alcuni target mancati")
-        
+                print(f"Alcuni target mancati")
+
         if 'model_type' in client_metrics:
             model_type = client_metrics['model_type']
             print(f"      🏗️ Architecture: {model_type}")
@@ -499,17 +490,14 @@ def print_client_metrics(fit_results):
         print(f"\n📊 STATISTICHE AGGREGATE:")
         print(f"   📈 Media Train Accuracy: {avg_train_acc:.4f}")
         print(f"   📈 Media Val Accuracy: {avg_val_acc:.4f}")
-        print(f"   📊 Gap Train-Val: {avg_train_acc - avg_val_acc:.4f}")
-        print(f"   🎯 Client con target >90%: {targets_met_count}/{len(fit_results)}")
         
         if targets_met_count == len(fit_results):
-            print(f"   🎉 TUTTI I CLIENT HANNO RAGGIUNTO I TARGET >90%!")
+            print(f"TUTTI I CLIENT HANNO RAGGIUNTO I TARGET!")
     
     print("=" * 60)
 
-# STRATEGIA FEDERATA ADATTATA
+# STRATEGIA FEDERATA
 class AdaptedStrategy(FedAvg):
-    """Strategia federata adattata ai client_nuovo.py"""
     
     def __init__(self, **kwargs):
         # Inizializza MetricsTracker
@@ -521,8 +509,8 @@ class AdaptedStrategy(FedAvg):
         super().__init__(**kwargs)
     
     def generate_initial_parameters(self):
-        """Genera parametri iniziali compatibili con client_nuovo.py"""
-        print("🔧 Generazione parametri iniziali server adattati...")
+        """Genera parametri iniziali compatibili con il client"""
+        print("Generazione parametri iniziali server adattati...")
         
         config = AdaptedServerConfig()
         
@@ -531,7 +519,6 @@ class AdaptedStrategy(FedAvg):
             initial_weights = temp_model.get_weights()
             print(f"   ✅ Parametri generati: {len(initial_weights)} tensori")
             print(f"   ✅ Architettura: {config.HIDDEN_LAYERS}")
-            print(f"   ✅ Compatibilità: Garantita con client_nuovo.py")
             return fl.common.ndarrays_to_parameters(initial_weights)
         except Exception as e:
             print(f"   ❌ Errore generazione parametri: {e}")
@@ -539,12 +526,12 @@ class AdaptedStrategy(FedAvg):
     
     def initialize_parameters(self, client_manager):
         """Restituisce parametri iniziali"""
-        print("📊 Inizializzazione parametri server adattati")
+        print("📊 Inizializzazione parametri")
         return self.initial_parameters
     
     def aggregate_fit(self, server_round, results, failures):
         """Aggregazione fit con gestione robusta"""
-        print(f"\n=== AGGREGAZIONE FIT ADATTATA ROUND {server_round} ===")
+        print(f"\n=== AGGREGAZIONE FIT ROUND {server_round} ===")
         print(f"   📊 Client partecipanti: {len(results)}")
         print(f"   ⚠️ Client falliti: {len(failures)}")
         
@@ -572,7 +559,7 @@ class AdaptedStrategy(FedAvg):
         aggregated_result = super().aggregate_fit(server_round, results, failures)
         
         if aggregated_result is not None:
-            parameters, _ = aggregated_result  # Ignora le metriche standard
+            parameters, _ = aggregated_result
             
             # Salva metriche FIT nel tracker
             global GLOBAL_METRICS_TRACKER
@@ -587,9 +574,9 @@ class AdaptedStrategy(FedAvg):
             return parameters, aggregated_fit_metrics
     
     def aggregate_fit_metrics_manual(self, metrics):
-        """Aggregazione manuale delle metriche FIT con TUTTE le metriche"""
+        """Aggregazione manuale delle metriche FIT con le metriche"""
         if not metrics:
-            print("ℹ️ Nessuna metrica FIT da aggregare")
+            print("Nessuna metrica FIT da aggregare")
             return {}
         
         print(f"🔄 Aggregating FIT metrics from {len(metrics)} clients...")
@@ -633,9 +620,9 @@ class AdaptedStrategy(FedAvg):
         return aggregated
     
     def aggregate_evaluate(self, server_round, results, failures):
-        """Aggregazione evaluate compatibile"""
-        print(f"\n=== AGGREGATE_EVALUATE ADATTATO ROUND {server_round} ===")
-        
+        """Aggregazione evaluate"""
+        print(f"\n=== AGGREGATE_EVALUATE ROUND {server_round} ===")
+
         aggregated_result = super().aggregate_evaluate(server_round, results, failures)
         
         if aggregated_result is not None:
@@ -654,10 +641,9 @@ class AdaptedStrategy(FedAvg):
 
         return aggregated_result
 
-# VALUTAZIONE GLOBALE ADATTATA
+# VALUTAZIONE GLOBALE
 def get_evaluate():
-    """Crea funzione di valutazione globale adattata"""
-    
+
     try:
         X_global, y_global = load_server_data()
         input_shape = X_global.shape[1]
@@ -667,13 +653,11 @@ def get_evaluate():
         y_global = np.random.randint(0, 2, 100).astype(np.float32)
         input_shape = 30
         print("🔄 Usando dati sintetici per server")
-    
-    # Nella funzione evaluate(), sostituisci la sezione di valutazione con:
 
 def evaluate(server_round, parameters, config):
-    """Valutazione globale adattata ai client_nuovo.py"""
-    print(f"\n=== VALUTAZIONE GLOBALE ADATTATA ROUND {server_round} ===")
-    
+    """Valutazione globale"""
+    print(f"\n=== VALUTAZIONE GLOBALE ROUND {server_round} ===")
+
     try:
         # Crea modello adattato (architettura [256, 128, 64, 32])
         model = create_server_model(input_shape)
@@ -684,7 +668,7 @@ def evaluate(server_round, parameters, config):
             print(f"⚠️ Incompatibilità pesi: ricevuti {len(parameters)}, attesi {len(model_weights)}")
             return 1.0, {"error": "weight_mismatch", "global_samples": len(X_global)}
         
-        # Verifica compatibilità dimensioni (importante!)
+        # Verifica compatibilità dimensioni
         try:
             model.set_weights(parameters)
             print(f"✅ Pesi caricati con successo - Architettura compatibile!")
@@ -692,11 +676,11 @@ def evaluate(server_round, parameters, config):
             print(f"❌ Errore caricamento pesi: {weight_error}")
             return 1.0, {"error": f"weight_loading_failed: {weight_error}", "global_samples": len(X_global)}
 
-        # CORREZIONE: Valutazione con estrazione sicura dei valori
+        # Valutazione con estrazione sicura dei valori
         try:
             results = model.evaluate(X_global, y_global, verbose=0)
-            
-            # ESTRAZIONE SICURA DEI VALORI (correzione principale)
+
+            # ESTRAZIONE SICURA DEI VALORI
             loss = float(results[0]) if len(results) > 0 else 1.0
             accuracy = float(results[1]) if len(results) > 1 else 0.0
             precision = float(results[2]) if len(results) > 2 else 0.0
@@ -758,8 +742,8 @@ def evaluate(server_round, parameters, config):
             balanced_accuracy = accuracy
             auc_manual = auc_roc
         
-        # CORREZIONE: Risultati dettagliati con valori sicuri
-        print(f"📊 RISULTATI VALUTAZIONE GLOBALE ADATTATA:")
+        # Risultati dettagliati con valori
+        print(f"📊 RISULTATI VALUTAZIONE GLOBALE:")
         print(f"   📈 Loss: {loss:.6f}")
         print(f"   📈 Accuracy: {accuracy:.4f} ({accuracy*100:.1f}%) {'🎯' if accuracy >= 0.90 else ''}")
         print(f"   📈 Precision: {precision:.4f} ({precision*100:.1f}%) {'🎯' if precision >= 0.90 else ''}")
@@ -782,7 +766,7 @@ def evaluate(server_round, parameters, config):
         all_targets = all(targets_met.values())
         
         if all_targets:
-            print(f"   🎉 TUTTI I TARGET >90% RAGGIUNTI GLOBALMENTE! 🎉")
+            print(f"TUTTI I TARGET RAGGIUNTI GLOBALMENTE!")
         else:
             missed = [k for k, v in targets_met.items() if not v]
             print(f"   ⚠️ Target mancati globalmente: {missed}")
@@ -819,15 +803,10 @@ def evaluate(server_round, parameters, config):
 
 # MAIN FUNCTION
 def main():
-    """Funzione principale del server adattato"""
-    print(f"\n🚀 AVVIO SERVER SMARTGRID ADATTATO AI CLIENT_NUOVO.PY")
+    """Funzione principale del server"""
+    print(f"\n🚀 AVVIO SERVER SMARTGRID ADATTATO AI CLIENT")
     print("=" * 80)
-    print(f"📅 Data: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"👩‍💻 Sviluppatore: Francesca Pellegrino")
-    print(f"🎯 Progetto: SmartGrid False Data Injection Attack Detection")
     print(f"🔧 Framework: Flower (FedAvg)")
-    print(f"🧠 Architettura: [256, 128, 64, 32] → 1 (Improved Kaggle Style)")
-    print(f"✅ Compatibilità: 100% con client_nuovo.py")
     print("=" * 80)
     
     try:
@@ -855,8 +834,7 @@ def main():
         
         print("\n✅ Server adattato configurato e pronto!")
         print("🔗 In attesa di connessioni client...")
-        print("💡 Avviare i client_nuovo.py per iniziare il federated learning")
-        print("🎯 Obiettivo: Raggiungere >90% accuracy, precision, recall, f1-score")
+        print("💡 Avviare i client per iniziare il federated learning")
         print("=" * 80)
         
         # Avvio server Flower
@@ -883,8 +861,8 @@ def main():
                 print(f"✅ Report generato con successo!")
             except Exception as e:
                 print(f"⚠️ Errore generazione report: {e}")
-        
-        print(f"\n🎉 SERVER SMARTGRID ADATTATO TERMINATO!")
+
+        print(f"\nSERVER SMARTGRID TERMINATO!")
 
 if __name__ == "__main__":
     main()
