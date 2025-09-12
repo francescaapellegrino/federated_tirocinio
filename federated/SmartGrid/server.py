@@ -1,5 +1,5 @@
 """
-Server federato SmartGrid - VERSIONE ADATTATA ai client_nuovo.py
+Server federato SmartGrid
 Francesca Pellegrino
 """
 
@@ -45,7 +45,7 @@ class AdaptedServerConfig:
     TOTAL_FEATURES = 30
 
     # Server specific
-    NUM_ROUNDS = 200
+    NUM_ROUNDS = 15
     MIN_CLIENTS = 2
     VERSION = "2.0"
     RANDOM_SEED = 42
@@ -57,7 +57,7 @@ class CompleteMetricsTracker:
         self.target_metrics = [
             'val_loss', 'global_accuracy', 'global_precision', 
             'global_recall', 'global_f1_score', 'global_auc_roc',
-            'global_specificity', 'global_sensitivity'
+            'global_specificity'
         ]
         
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -75,7 +75,7 @@ class CompleteMetricsTracker:
                     'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                     'val_loss': None, 'global_accuracy': None, 'global_precision': None,
                     'global_recall': None, 'global_f1_score': None, 'global_auc_roc': None,
-                    'global_specificity': None, 'global_sensitivity': None
+                    'global_specificity': None
                 }
             
             # AGGIUNGI METRICHE DAI CLIENT (FIT)
@@ -91,8 +91,7 @@ class CompleteMetricsTracker:
                     'val_recall': 'global_recall',
                     'val_f1_score': 'global_f1_score',
                     'val_auc_roc': 'global_auc_roc',
-                    'val_specificity': 'global_specificity',
-                    'val_sensitivity': 'global_sensitivity'
+                    'val_specificity': 'global_specificity'
                 }
                 
                 for client_metric, global_metric in client_to_global_mapping.items():
@@ -103,7 +102,7 @@ class CompleteMetricsTracker:
             # AGGIUNGI METRICHE DAL SERVER (EVALUATE)
             if evaluate_metrics:
                 for metric in ['global_accuracy', 'global_precision', 'global_recall', 
-                            'global_f1_score', 'global_auc_roc', 'global_specificity', 'global_sensitivity']:
+                            'global_f1_score', 'global_auc_roc', 'global_specificity']:
                     if metric in evaluate_metrics:
                         # Privilegia evaluate su fit
                         self.round_metrics[round_num][metric] = evaluate_metrics[metric]
@@ -144,7 +143,7 @@ class CompleteMetricsTracker:
         f.write("\nTABELLA RIASSUNTIVA METRICHE:\n")
         f.write("=" * 120 + "\n")
         
-        header = f"{'Round':<6} {'Loss':<10} {'Accuracy':<10} {'Precision':<11} {'Recall':<10} {'F1_Score':<10} {'AUC_ROC':<10} {'Specificity':<10} {'Sensitivity':<10}"
+        header = f"{'Round':<6} {'Loss':<10} {'Accuracy':<10} {'Precision':<11} {'Recall':<10} {'F1_Score':<10} {'AUC_ROC':<10} {'Specificity':<10}"
         f.write(header + "\n")
         f.write("-" * 120 + "\n")
         
@@ -161,9 +160,8 @@ class CompleteMetricsTracker:
             f1_score = safe_format(metrics['global_f1_score'])
             auc_roc = safe_format(metrics['global_auc_roc'])
             specificity = safe_format(metrics['global_specificity'])
-            sensitivity = safe_format(metrics['global_sensitivity'])
             
-            row = f"{round_num:<6} {val_loss:<10} {accuracy:<10} {precision:<11} {recall:<10} {f1_score:<10} {auc_roc:<10} {specificity:<10} {sensitivity:<10}"
+            row = f"{round_num:<6} {val_loss:<10} {accuracy:<10} {precision:<11} {recall:<10} {f1_score:<10} {auc_roc:<10} {specificity:<10}"
             f.write(row + "\n")
         
         f.write("=" * 120 + "\n\n")
@@ -176,7 +174,7 @@ class CompleteMetricsTracker:
         metrics_stats = {}
         
         for metric in ['val_loss', 'global_accuracy', 'global_precision', 'global_recall', 
-                      'global_f1_score', 'global_auc_roc', 'global_specificity', 'global_sensitivity']:
+                      'global_f1_score', 'global_auc_roc', 'global_specificity']:
             values = [self.round_metrics[r][metric] for r in self.round_metrics 
                      if self.round_metrics[r][metric] is not None]
             
@@ -595,7 +593,7 @@ class AdaptedStrategy(FedAvg):
                 if isinstance(value, (int, float)) and not np.isnan(value) and not np.isinf(value):
                     metrics_sum[key] += num_examples * value
                     # Debug delle metriche principali
-                    if key in ['val_loss', 'val_auc_roc', 'val_specificity', 'val_sensitivity']:
+                    if key in ['val_loss', 'val_auc_roc', 'val_specificity']:
                         print(f"      ✅ {key}: {value:.6f}")
         
         # Calcola medie pesate
@@ -611,8 +609,6 @@ class AdaptedStrategy(FedAvg):
             print(f"✅ Aggregated FIT AUC ROC: {aggregated['val_auc_roc']:.6f}")
         if 'val_specificity' in aggregated:
             print(f"✅ Aggregated FIT Specificity: {aggregated['val_specificity']:.6f}")
-        if 'val_sensitivity' in aggregated:
-            print(f"✅ Aggregated FIT Sensitivity: {aggregated['val_sensitivity']:.6f}")
 
         aggregated['total_clients'] = len(metrics)
         aggregated['total_samples'] = total_examples
@@ -722,13 +718,11 @@ def evaluate(server_round, parameters, config):
             if cm.shape == (2, 2):
                 tn, fp, fn, tp = cm.ravel()
                 specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
-                sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-                balanced_accuracy = (sensitivity + specificity) / 2
+                balanced_accuracy = (recall + specificity) / 2
             else:
                 specificity = 0.0
-                sensitivity = recall
-                balanced_accuracy = accuracy
-            
+            balanced_accuracy = accuracy
+
             # AUC sicuro
             try:
                 auc_manual = roc_auc_score(y_global, y_pred_prob)
@@ -738,7 +732,6 @@ def evaluate(server_round, parameters, config):
         except Exception as calc_error:
             print(f"⚠️ Errore calcoli aggiuntivi: {calc_error}")
             specificity = 0.0
-            sensitivity = recall
             balanced_accuracy = accuracy
             auc_manual = auc_roc
         
@@ -752,7 +745,6 @@ def evaluate(server_round, parameters, config):
         print(f"   📈 AUC-ROC: {auc_manual:.4f} ({auc_manual*100:.1f}%)")
         print(f"   📈 AUC-PR: {auc_pr:.4f} ({auc_pr*100:.1f}%)")
         print(f"   📈 Specificity: {specificity:.4f} ({specificity*100:.1f}%)")
-        print(f"   📈 Sensitivity: {sensitivity:.4f} ({sensitivity*100:.1f}%)")
         print(f"   📈 Balanced Accuracy: {balanced_accuracy:.4f}")
         
         # Check target raggiunti
@@ -779,7 +771,6 @@ def evaluate(server_round, parameters, config):
             "global_f1_score": float(f1_score),
             "global_auc_roc": float(auc_manual),
             "global_specificity": float(specificity),
-            "global_sensitivity": float(sensitivity),
             "global_samples": int(len(X_global)),
             "server_round": int(server_round),
             "evaluation_successful": True,
