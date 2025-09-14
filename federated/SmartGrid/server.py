@@ -45,7 +45,7 @@ class AdaptedServerConfig:
     TOTAL_FEATURES = 30
 
     # Server specific
-    NUM_ROUNDS = 15
+    NUM_ROUNDS = 50
     MIN_CLIENTS = 2
     VERSION = "2.0"
     RANDOM_SEED = 42
@@ -650,147 +650,147 @@ def get_evaluate():
         input_shape = 30
         print("🔄 Usando dati sintetici per server")
 
-def evaluate(server_round, parameters, config):
-    """Valutazione globale"""
-    print(f"\n=== VALUTAZIONE GLOBALE ROUND {server_round} ===")
+    def evaluate(server_round, parameters, config):
+        """Valutazione globale"""
+        print(f"\n=== VALUTAZIONE GLOBALE ROUND {server_round} ===")
 
-    try:
-        # Crea modello adattato (architettura [256, 128, 64, 32])
-        model = create_server_model(input_shape)
-        
-        # Verifica compatibilità pesi
-        model_weights = model.get_weights()
-        if len(parameters) != len(model_weights):
-            print(f"⚠️ Incompatibilità pesi: ricevuti {len(parameters)}, attesi {len(model_weights)}")
-            return 1.0, {"error": "weight_mismatch", "global_samples": len(X_global)}
-        
-        # Verifica compatibilità dimensioni
         try:
-            model.set_weights(parameters)
-            print(f"✅ Pesi caricati con successo - Architettura compatibile!")
-        except Exception as weight_error:
-            print(f"❌ Errore caricamento pesi: {weight_error}")
-            return 1.0, {"error": f"weight_loading_failed: {weight_error}", "global_samples": len(X_global)}
-
-        # Valutazione con estrazione sicura dei valori
-        try:
-            results = model.evaluate(X_global, y_global, verbose=0)
-
-            # ESTRAZIONE SICURA DEI VALORI
-            loss = float(results[0]) if len(results) > 0 else 1.0
-            accuracy = float(results[1]) if len(results) > 1 else 0.0
-            precision = float(results[2]) if len(results) > 2 else 0.0
-            recall = float(results[3]) if len(results) > 3 else 0.0
+            # Crea modello adattato (architettura [256, 128, 64, 32])
+            model = create_server_model(input_shape)
             
-            # F1-Score: potrebbe essere array, estraiamo il valore
-            if len(results) > 4:
-                f1_raw = results[4]
-                # Se è un array, prendi il primo elemento, altrimenti usa direttamente
-                f1_score = float(f1_raw[0]) if hasattr(f1_raw, '__len__') and len(f1_raw) > 0 else float(f1_raw)
-            else:
-                f1_score = 0.0
+            # Verifica compatibilità pesi
+            model_weights = model.get_weights()
+            if len(parameters) != len(model_weights):
+                print(f"⚠️ Incompatibilità pesi: ricevuti {len(parameters)}, attesi {len(model_weights)}")
+                return 1.0, {"error": "weight_mismatch", "global_samples": len(X_global)}
             
-            # AUC-ROC: stesso trattamento
-            if len(results) > 5:
-                auc_raw = results[5]
-                auc_roc = float(auc_raw[0]) if hasattr(auc_raw, '__len__') and len(auc_raw) > 0 else float(auc_raw)
-            else:
-                auc_roc = 0.5
-            
-            # AUC-PR: stesso trattamento
-            if len(results) > 6:
-                auc_pr_raw = results[6]
-                auc_pr = float(auc_pr_raw[0]) if hasattr(auc_pr_raw, '__len__') and len(auc_pr_raw) > 0 else float(auc_pr_raw)
-            else:
-                auc_pr = 0.5
-                
-        except Exception as eval_error:
-            print(f"❌ Errore valutazione modello: {eval_error}")
-            return 1.0, {"error": f"evaluation_failed: {eval_error}", "global_samples": len(X_global)}
-        
-        # Calcoli aggiuntivi per analisi dettagliata
-        try:
-            y_pred_prob = model.predict(X_global, verbose=0).flatten()
-            y_pred_binary = (y_pred_prob > 0.5).astype(int)
-            
-            # Matrice confusione per specificity
-            cm = confusion_matrix(y_global, y_pred_binary)
-            if cm.shape == (2, 2):
-                tn, fp, fn, tp = cm.ravel()
-                specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
-                balanced_accuracy = (recall + specificity) / 2
-            else:
-                specificity = 0.0
-            balanced_accuracy = accuracy
-
-            # AUC sicuro
+            # Verifica compatibilità dimensioni
             try:
-                auc_manual = roc_auc_score(y_global, y_pred_prob)
-            except:
-                auc_manual = auc_roc
-                
-        except Exception as calc_error:
-            print(f"⚠️ Errore calcoli aggiuntivi: {calc_error}")
-            specificity = 0.0
-            balanced_accuracy = accuracy
-            auc_manual = auc_roc
-        
-        # Risultati dettagliati con valori
-        print(f"📊 RISULTATI VALUTAZIONE GLOBALE:")
-        print(f"   📈 Loss: {loss:.6f}")
-        print(f"   📈 Accuracy: {accuracy:.4f} ({accuracy*100:.1f}%) {'🎯' if accuracy >= 0.90 else ''}")
-        print(f"   📈 Precision: {precision:.4f} ({precision*100:.1f}%) {'🎯' if precision >= 0.90 else ''}")
-        print(f"   📈 Recall: {recall:.4f} ({recall*100:.1f}%) {'🎯' if recall >= 0.90 else ''}")
-        print(f"   📈 F1-Score: {f1_score:.4f} ({f1_score*100:.1f}%) {'🎯' if f1_score >= 0.90 else ''}")
-        print(f"   📈 AUC-ROC: {auc_manual:.4f} ({auc_manual*100:.1f}%)")
-        print(f"   📈 AUC-PR: {auc_pr:.4f} ({auc_pr*100:.1f}%)")
-        print(f"   📈 Specificity: {specificity:.4f} ({specificity*100:.1f}%)")
-        print(f"   📈 Balanced Accuracy: {balanced_accuracy:.4f}")
-        
-        # Check target raggiunti
-        targets_met = {
-            'accuracy_90': accuracy >= 0.90,
-            'precision_90': precision >= 0.90,
-            'recall_90': recall >= 0.90,
-            'f1_90': f1_score >= 0.90
-        }
-        
-        all_targets = all(targets_met.values())
-        
-        if all_targets:
-            print(f"TUTTI I TARGET RAGGIUNTI GLOBALMENTE!")
-        else:
-            missed = [k for k, v in targets_met.items() if not v]
-            print(f"   ⚠️ Target mancati globalmente: {missed}")
-        
-        # Metriche complete per tracking
-        eval_metrics = {
-            "global_accuracy": float(accuracy),
-            "global_precision": float(precision),
-            "global_recall": float(recall),
-            "global_f1_score": float(f1_score),
-            "global_auc_roc": float(auc_manual),
-            "global_specificity": float(specificity),
-            "global_samples": int(len(X_global)),
-            "server_round": int(server_round),
-            "evaluation_successful": True,
-            "architecture_compatible": True,
-            "all_targets_met": float(all_targets)
-        }
+                model.set_weights(parameters)
+                print(f"✅ Pesi caricati con successo - Architettura compatibile!")
+            except Exception as weight_error:
+                print(f"❌ Errore caricamento pesi: {weight_error}")
+                return 1.0, {"error": f"weight_loading_failed: {weight_error}", "global_samples": len(X_global)}
 
-        # DEBUG MIGLIORATO
-        print(f"📊 METRICHE INVIATE AL TRACKER (Round {server_round}):")
-        for key, value in eval_metrics.items():
-            if isinstance(value, float) and 'global_' in key:
-                print(f"   {key}: {value:.6f}")
-        
-        return float(loss), eval_metrics
-        
-    except Exception as e:
-        print(f"❌ Errore valutazione globale adattata: {e}")
-        import traceback
-        traceback.print_exc()
-        return 1.0, {"error": str(e), "global_samples": len(X_global), "architecture_compatible": False}
+            # Valutazione con estrazione sicura dei valori
+            try:
+                results = model.evaluate(X_global, y_global, verbose=0)
+
+                # ESTRAZIONE SICURA DEI VALORI
+                loss = float(results[0]) if len(results) > 0 else 1.0
+                accuracy = float(results[1]) if len(results) > 1 else 0.0
+                precision = float(results[2]) if len(results) > 2 else 0.0
+                recall = float(results[3]) if len(results) > 3 else 0.0
+                
+                # F1-Score: potrebbe essere array, estraiamo il valore
+                if len(results) > 4:
+                    f1_raw = results[4]
+                    # Se è un array, prendi il primo elemento, altrimenti usa direttamente
+                    f1_score = float(f1_raw[0]) if hasattr(f1_raw, '__len__') and len(f1_raw) > 0 else float(f1_raw)
+                else:
+                    f1_score = 0.0
+                
+                # AUC-ROC: stesso trattamento
+                if len(results) > 5:
+                    auc_raw = results[5]
+                    auc_roc = float(auc_raw[0]) if hasattr(auc_raw, '__len__') and len(auc_raw) > 0 else float(auc_raw)
+                else:
+                    auc_roc = 0.5
+                
+                # AUC-PR: stesso trattamento
+                if len(results) > 6:
+                    auc_pr_raw = results[6]
+                    auc_pr = float(auc_pr_raw[0]) if hasattr(auc_pr_raw, '__len__') and len(auc_pr_raw) > 0 else float(auc_pr_raw)
+                else:
+                    auc_pr = 0.5
+                    
+            except Exception as eval_error:
+                print(f"❌ Errore valutazione modello: {eval_error}")
+                return 1.0, {"error": f"evaluation_failed: {eval_error}", "global_samples": len(X_global)}
+            
+            # Calcoli aggiuntivi per analisi dettagliata
+            try:
+                y_pred_prob = model.predict(X_global, verbose=0).flatten()
+                y_pred_binary = (y_pred_prob > 0.5).astype(int)
+                
+                # Matrice confusione per specificity
+                cm = confusion_matrix(y_global, y_pred_binary)
+                if cm.shape == (2, 2):
+                    tn, fp, fn, tp = cm.ravel()
+                    specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+                    balanced_accuracy = (recall + specificity) / 2
+                else:
+                    specificity = 0.0
+                balanced_accuracy = accuracy
+
+                # AUC sicuro
+                try:
+                    auc_manual = roc_auc_score(y_global, y_pred_prob)
+                except:
+                    auc_manual = auc_roc
+                    
+            except Exception as calc_error:
+                print(f"⚠️ Errore calcoli aggiuntivi: {calc_error}")
+                specificity = 0.0
+                balanced_accuracy = accuracy
+                auc_manual = auc_roc
+            
+            # Risultati dettagliati con valori
+            print(f"📊 RISULTATI VALUTAZIONE GLOBALE:")
+            print(f"   📈 Loss: {loss:.6f}")
+            print(f"   📈 Accuracy: {accuracy:.4f} ({accuracy*100:.1f}%) {'🎯' if accuracy >= 0.90 else ''}")
+            print(f"   📈 Precision: {precision:.4f} ({precision*100:.1f}%) {'🎯' if precision >= 0.90 else ''}")
+            print(f"   📈 Recall: {recall:.4f} ({recall*100:.1f}%) {'🎯' if recall >= 0.90 else ''}")
+            print(f"   📈 F1-Score: {f1_score:.4f} ({f1_score*100:.1f}%) {'🎯' if f1_score >= 0.90 else ''}")
+            print(f"   📈 AUC-ROC: {auc_manual:.4f} ({auc_manual*100:.1f}%)")
+            print(f"   📈 AUC-PR: {auc_pr:.4f} ({auc_pr*100:.1f}%)")
+            print(f"   📈 Specificity: {specificity:.4f} ({specificity*100:.1f}%)")
+            print(f"   📈 Balanced Accuracy: {balanced_accuracy:.4f}")
+            
+            # Check target raggiunti
+            targets_met = {
+                'accuracy_90': accuracy >= 0.90,
+                'precision_90': precision >= 0.90,
+                'recall_90': recall >= 0.90,
+                'f1_90': f1_score >= 0.90
+            }
+            
+            all_targets = all(targets_met.values())
+            
+            if all_targets:
+                print(f"TUTTI I TARGET RAGGIUNTI GLOBALMENTE!")
+            else:
+                missed = [k for k, v in targets_met.items() if not v]
+                print(f"   ⚠️ Target mancati globalmente: {missed}")
+            
+            # Metriche complete per tracking
+            eval_metrics = {
+                "global_accuracy": float(accuracy),
+                "global_precision": float(precision),
+                "global_recall": float(recall),
+                "global_f1_score": float(f1_score),
+                "global_auc_roc": float(auc_manual),
+                "global_specificity": float(specificity),
+                "global_samples": int(len(X_global)),
+                "server_round": int(server_round),
+                "evaluation_successful": True,
+                "architecture_compatible": True,
+                "all_targets_met": float(all_targets)
+            }
+
+            # DEBUG MIGLIORATO
+            print(f"📊 METRICHE INVIATE AL TRACKER (Round {server_round}):")
+            for key, value in eval_metrics.items():
+                if isinstance(value, float) and 'global_' in key:
+                    print(f"   {key}: {value:.6f}")
+            
+            return float(loss), eval_metrics
+            
+        except Exception as e:
+            print(f"❌ Errore valutazione globale adattata: {e}")
+            import traceback
+            traceback.print_exc()
+            return 1.0, {"error": str(e), "global_samples": len(X_global), "architecture_compatible": False}
 
 # MAIN FUNCTION
 def main():
