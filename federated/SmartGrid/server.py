@@ -21,7 +21,7 @@ warnings.filterwarnings('ignore')
 
 GLOBAL_METRICS_TRACKER = None
 
-# CONFIGURAZIONE SERVER ADATTATA AI CLIENT
+# CONFIGURAZIONE SERVER
 class AdaptedServerConfig:
     
     # ARCHITETTURA
@@ -97,7 +97,7 @@ class CompleteMetricsTracker:
                 for client_metric, global_metric in client_to_global_mapping.items():
                     if client_metric in fit_metrics:
                         self.round_metrics[round_num][global_metric] = fit_metrics[client_metric]
-                        print(f"      📊 Mappato {client_metric} → {global_metric}: {fit_metrics[client_metric]:.6f}")
+                        print(f"Mappato {client_metric} → {global_metric}: {fit_metrics[client_metric]:.6f}")
             
             # AGGIUNGI METRICHE DAL SERVER (EVALUATE)
             if evaluate_metrics:
@@ -110,16 +110,16 @@ class CompleteMetricsTracker:
             # Debug
             available_metrics = [k for k, v in self.round_metrics[round_num].items() 
                             if v is not None and k != 'timestamp']
-            print(f"✅ Round {round_num}: {len(available_metrics)} metriche salvate: {available_metrics}")
+            print(f"Round {round_num}: {len(available_metrics)} metriche salvate: {available_metrics}")
             
         except Exception as e:
-            print(f"❌ Errore salvataggio round {round_num}: {e}")
+            print(f"Errore salvataggio round {round_num}: {e}")
     
     def generate_final_report(self):
         """Genera il resoconto finale completo"""
         try:
             if not self.round_metrics:
-                print("⚠️ Nessuna metrica da salvare")
+                print("Nessuna metrica da salvare")
                 return
             
             with open(self.output_file, 'w', encoding='utf-8') as f:
@@ -131,13 +131,13 @@ class CompleteMetricsTracker:
                 
                 self._write_summary_table(f)
                 self._write_final_statistics(f)
-            
-            print(f"✅ Resoconto completo generato: {self.output_file}")
-            print(f"📊 Rounds tracciati: {len(self.round_metrics)}")
-            
+
+            print(f"Resoconto completo generato: {self.output_file}")
+            print(f"Rounds tracciati: {len(self.round_metrics)}")
+
         except Exception as e:
-            print(f"❌ Errore generazione resoconto: {e}")
-    
+            print(f"Errore generazione resoconto: {e}")
+
     def _write_summary_table(self, f):
         """Scrive tabella riassuntiva"""
         f.write("\nTABELLA RIASSUNTIVA METRICHE:\n")
@@ -206,7 +206,7 @@ class CompleteMetricsTracker:
 # CARICAMENTO DATASET SERVER
 def load_server_data():
     """Carica dati server con preprocessing identico ai client"""
-    print("📂 CARICAMENTO DATASET GLOBALE SERVER")
+    print("CARICAMENTO DATASET GLOBALE SERVER")
     
     config = AdaptedServerConfig()
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -218,13 +218,13 @@ def load_server_data():
         try:
             df = pd.read_csv(file_path)
             df_list.append(df)
-            print(f"   ✅ Caricato data{client_id}.csv: {len(df)} campioni")
+            print(f"Caricato data{client_id}.csv: {len(df)} campioni")
         except FileNotFoundError:
-            print(f"   ⚠️ File data{client_id}.csv non trovato, saltato")
+            print(f"File data{client_id}.csv non trovato, saltato")
             continue
 
     if not df_list:
-        print("🔄 ATTENZIONE: Usando fallback data1.csv per server")
+        print("ATTENZIONE: Usando fallback data1.csv per server")
         fallback_path = os.path.join(script_dir, "..", "..", "data", "SmartGrid", "data1.csv")
         try:
             df_fallback = pd.read_csv(fallback_path)
@@ -237,17 +237,17 @@ def load_server_data():
     X = df_global.drop(columns=["marker"])
     y = (df_global["marker"] != "Natural").astype(np.float32)
     
-    print(f"   📊 Dataset grezzo: {len(X)} campioni, {X.shape[1]} feature")
-    print(f"   📊 Distribuzione: {y.sum():.0f} attacchi ({y.mean()*100:.1f}%)")
+    print(f"Dataset grezzo: {len(X)} campioni, {X.shape[1]} feature")
+    print(f"Distribuzione: {y.sum():.0f} attacchi ({y.mean()*100:.1f}%)")
     
     # PREPROCESSING IDENTICO AI CLIENT (important!)
     print(f"   🧹 Pulizia base...")
     X.replace([np.inf, -np.inf], np.nan, inplace=True)
     if X.isnull().sum().sum() > 0:
         X.fillna(X.median(), inplace=True)
-        print(f"      ✅ NaN imputati con mediana")
+        print(f"NaN imputati con mediana")
 
-    print(f"   🔍 PCA {config.PCA_COMPONENTS} componenti...")
+    print(f"PCA {config.PCA_COMPONENTS} componenti...")
     scaler_pca = StandardScaler()
     X_scaled = scaler_pca.fit_transform(X)
     
@@ -255,22 +255,22 @@ def load_server_data():
     X_pca = pca.fit_transform(X_scaled).astype(np.float32)
 
     variance_explained = pca.explained_variance_ratio_.sum()
-    print(f"      ✅ PCA: {X.shape[1]} → {X_pca.shape[1]} feature")
-    print(f"      ✅ Varianza spiegata: {variance_explained*100:.2f}%")
+    print(f"PCA: {X.shape[1]} → {X_pca.shape[1]} feature")
+    print(f"Varianza spiegata: {variance_explained*100:.2f}%")
 
-    print(f"   📊 Usando solo PCA features (come i client)...")
+    print(f"Usando solo PCA features (come i client)...")
     X_enhanced = X_pca
-    print(f"      ✅ Features: {X_pca.shape[1]} (solo PCA)")
+    print(f"Features: {X_pca.shape[1]} (solo PCA)")
 
-    print(f"   📏 Normalizzazione finale...")
+    print(f"Normalizzazione finale...")
     final_scaler = StandardScaler()
     X_final = final_scaler.fit_transform(X_enhanced).astype(np.float32)
     y = y.astype(np.float32)
     
-    print(f"   ✅ Dataset server preparato:")
-    print(f"      📊 Pipeline: {X.shape[1]} → {X_pca.shape[1]} → {X_final.shape[1]} feature")
-    print(f"      📊 Campioni finali: {len(X_final)}")
-    print(f"      ✅ Tipi corretti: X={X_final.dtype}, y={y.dtype}")
+    print(f"Dataset server preparato:")
+    print(f"Pipeline: {X.shape[1]} → {X_pca.shape[1]} → {X_final.shape[1]} feature")
+    print(f"Campioni finali: {len(X_final)}")
+    print(f"Tipi corretti: X={X_final.dtype}, y={y.dtype}")
     print("=" * 70)
     
     return X_final, y
@@ -278,12 +278,12 @@ def load_server_data():
 # MODELLO SERVER
 def create_server_model(input_shape: int):
     """
-    Crea modello server come ai client
+    Crea modello server
     ARCHITETTURA: [256, 128, 64, 32] → 1
     """
     
     if input_shape != 30:
-        print(f"⚠️ Warning: input_shape {input_shape} != 30, forzo a 30 per compatibilità")
+        print(f"Warning: input_shape {input_shape} != 30, forzo a 30 per compatibilità")
         input_shape = 30
     
     tf.random.set_seed(42)
@@ -291,10 +291,10 @@ def create_server_model(input_shape: int):
     
     config = AdaptedServerConfig()
     
-    print(f"🔧 MODELLO SERVER:")
-    print(f"   📐 Input: {input_shape} features")
-    print(f"   🎯 Architettura: {' → '.join(map(str, config.HIDDEN_LAYERS))} → 1")
-    
+    print(f"MODELLO SERVER:")
+    print(f"Input: {input_shape} features")
+    print(f"Architettura: {' → '.join(map(str, config.HIDDEN_LAYERS))} → 1")
+
     # ARCHITETTURA
     model = keras.Sequential([
         # Input layer
@@ -353,7 +353,7 @@ def create_server_model(input_shape: int):
         )
     ], name="SmartGrid_Server")
     
-    # OPTIMIZER IDENTICO AI CLIENT
+    # OPTIMIZER
     optimizer = keras.optimizers.Adam(
         learning_rate=config.LEARNING_RATE,  # 0.0015
         beta_1=config.BETA_1,
@@ -361,7 +361,7 @@ def create_server_model(input_shape: int):
         clipnorm=config.CLIPNORM
     )
     
-    # LOSS PESATA (identica ai client)
+    # LOSS PESATA
     def weighted_binary_crossentropy(pos_weight=2.5):
         """Loss pesata per migliorare recall mantenendo precision"""
         def loss_fn(y_true, y_pred):
@@ -377,8 +377,8 @@ def create_server_model(input_shape: int):
             return tf.reduce_mean(loss_pos + loss_neg)
         
         return loss_fn
-    
-    # Compilazione identica ai client
+
+    # Compilazione
     model.compile(
         optimizer=optimizer,
         loss=weighted_binary_crossentropy(pos_weight=2.5),
@@ -392,11 +392,11 @@ def create_server_model(input_shape: int):
         ]
     )
     
-    print(f"🎯 MODELLO SERVER ADATTATO CREATO:")
-    print(f"   📐 Architettura: {' → '.join(map(str, config.HIDDEN_LAYERS))} → 1")
-    print(f"   🎛️ Parametri totali: {model.count_params():,}")
-    print(f"   🧠 Activation: {config.ACTIVATION}")
-    print(f"   ⚡ Optimizer: Adam (learning_rate={config.LEARNING_RATE})")
+    print(f"MODELLO SERVER CREATO:")
+    print(f"Architettura: {' → '.join(map(str, config.HIDDEN_LAYERS))} → 1")
+    print(f"Parametri totali: {model.count_params():,}")
+    print(f"Activation: {config.ACTIVATION}")
+    print(f"Optimizer: Adam (learning_rate={config.LEARNING_RATE})")
 
     return model
 
@@ -406,15 +406,15 @@ def weighted_average(metrics):
     if not metrics:
         print("Nessuna metrica da aggregare")
         return {}
-    
-    print(f"🔄 Aggregating evaluate metrics from {len(metrics)} clients...")
-    
+
+    print(f"Aggregating evaluate metrics from {len(metrics)} clients...")
+
     metrics_sum = {}
     total_examples = 0
     
     for i, (num_examples, metrics_dict) in enumerate(metrics):
         total_examples += num_examples
-        print(f"   📊 Client {i+1}: {num_examples} samples, EVALUATE metrics: {list(metrics_dict.keys())}")
+        print(f"Client {i+1}: {num_examples} samples, EVALUATE metrics: {list(metrics_dict.keys())}")
         
         for key, value in metrics_dict.items():
             if key not in metrics_sum:
@@ -434,7 +434,7 @@ def weighted_average(metrics):
     aggregated['total_clients'] = len(metrics)
     aggregated['total_samples'] = total_examples
 
-    print(f"✅ Evaluate metrics aggregated: {list(aggregated.keys())}")
+    print(f"Evaluate metrics aggregated: {list(aggregated.keys())}")
     return aggregated
 
 def print_client_metrics(fit_results):
@@ -442,7 +442,7 @@ def print_client_metrics(fit_results):
     if not fit_results:
         return
 
-    print(f"\n📊 METRICHE CLIENT")
+    print(f"\nMETRICHE CLIENT")
     
     total_samples = 0
     total_train_acc = 0
@@ -455,18 +455,18 @@ def print_client_metrics(fit_results):
         
         total_samples += client_samples
         
-        print(f"   🔹 Client {i+1}:")
-        print(f"      📊 Campioni: {client_samples}")
+        print(f" 🔹 Client {i+1}:")
+        print(f"Campioni: {client_samples}")
         
         if 'train_accuracy' in client_metrics:
             train_acc = client_metrics['train_accuracy']
             total_train_acc += train_acc * client_samples
-            print(f"      📈 Train Acc: {train_acc:.4f}")
+            print(f"Train Acc: {train_acc:.4f}")
         
         if 'val_accuracy' in client_metrics:
             val_acc = client_metrics['val_accuracy']
             total_val_acc += val_acc * client_samples
-            print(f"      📈 Val Acc: {val_acc:.4f}")
+            print(f"Val Acc: {val_acc:.4f}")
         
         # Target tracking dai client migliorati
         if 'all_targets_met' in client_metrics:
@@ -478,16 +478,16 @@ def print_client_metrics(fit_results):
 
         if 'model_type' in client_metrics:
             model_type = client_metrics['model_type']
-            print(f"      🏗️ Architecture: {model_type}")
-    
+            print(f"Architecture: {model_type}")
+
     # Statistiche aggregate
     if total_samples > 0:
         avg_train_acc = total_train_acc / total_samples
         avg_val_acc = total_val_acc / total_samples
         
-        print(f"\n📊 STATISTICHE AGGREGATE:")
-        print(f"   📈 Media Train Accuracy: {avg_train_acc:.4f}")
-        print(f"   📈 Media Val Accuracy: {avg_val_acc:.4f}")
+        print(f"\nSTATISTICHE AGGREGATE:")
+        print(f"Media Train Accuracy: {avg_train_acc:.4f}")
+        print(f"Media Val Accuracy: {avg_val_acc:.4f}")
         
         if targets_met_count == len(fit_results):
             print(f"TUTTI I CLIENT HANNO RAGGIUNTO I TARGET!")
@@ -502,39 +502,39 @@ class AdaptedStrategy(FedAvg):
         global GLOBAL_METRICS_TRACKER
         GLOBAL_METRICS_TRACKER = CompleteMetricsTracker()
 
-        # Genera parametri iniziali compatibili
+        # Genera parametri iniziali
         self.initial_parameters = self.generate_initial_parameters()
         super().__init__(**kwargs)
     
     def generate_initial_parameters(self):
-        """Genera parametri iniziali compatibili con il client"""
-        print("Generazione parametri iniziali server adattati...")
+        """Genera parametri iniziali"""
+        print("Generazione parametri iniziali server...")
         
         config = AdaptedServerConfig()
         
         try:
             temp_model = create_server_model(input_shape=config.TOTAL_FEATURES)
             initial_weights = temp_model.get_weights()
-            print(f"   ✅ Parametri generati: {len(initial_weights)} tensori")
-            print(f"   ✅ Architettura: {config.HIDDEN_LAYERS}")
+            print(f"Parametri generati: {len(initial_weights)} tensori")
+            print(f"Architettura: {config.HIDDEN_LAYERS}")
             return fl.common.ndarrays_to_parameters(initial_weights)
         except Exception as e:
-            print(f"   ❌ Errore generazione parametri: {e}")
+            print(f"Errore generazione parametri: {e}")
             raise
     
     def initialize_parameters(self, client_manager):
         """Restituisce parametri iniziali"""
-        print("📊 Inizializzazione parametri")
+        print("Inizializzazione parametri")
         return self.initial_parameters
     
     def aggregate_fit(self, server_round, results, failures):
-        """Aggregazione fit con gestione robusta"""
+        """Aggregazione fit"""
         print(f"\n=== AGGREGAZIONE FIT ROUND {server_round} ===")
-        print(f"   📊 Client partecipanti: {len(results)}")
-        print(f"   ⚠️ Client falliti: {len(failures)}")
+        print(f"Client partecipanti: {len(results)}")
+        print(f"Client falliti: {len(failures)}")
         
         if failures:
-            print("   ❌ Fallimenti:")
+            print("Fallimenti:")
             for failure in failures:
                 print(f"      - {failure}")
 
@@ -551,7 +551,7 @@ class AdaptedStrategy(FedAvg):
         aggregated_fit_metrics = {}
         if fit_metrics:
             aggregated_fit_metrics = self.aggregate_fit_metrics_manual(fit_metrics)
-            print(f"   ✅ Aggregated FIT metrics: {list(aggregated_fit_metrics.keys())}")
+            print(f"Aggregated FIT metrics: {list(aggregated_fit_metrics.keys())}")
         
         # Chiama l'aggregazione standard dei parametri
         aggregated_result = super().aggregate_fit(server_round, results, failures)
@@ -567,8 +567,8 @@ class AdaptedStrategy(FedAvg):
                     fit_metrics=aggregated_fit_metrics,
                     evaluate_metrics=None
                 )
-            
-            print(f"✅ Aggregazione fit adattata completata per round {server_round}")
+
+            print(f"Aggregazione fit adattata completata per round {server_round}")
             return parameters, aggregated_fit_metrics
     
     def aggregate_fit_metrics_manual(self, metrics):
@@ -577,14 +577,14 @@ class AdaptedStrategy(FedAvg):
             print("Nessuna metrica FIT da aggregare")
             return {}
         
-        print(f"🔄 Aggregating FIT metrics from {len(metrics)} clients...")
+        print(f"Aggregating FIT metrics from {len(metrics)} clients...")
         
         metrics_sum = {}
         total_examples = 0
         
         for i, (num_examples, metrics_dict) in enumerate(metrics):
             total_examples += num_examples
-            print(f"   📊 Client {i+1}: {num_examples} samples, FIT metrics: {list(metrics_dict.keys())}")
+            print(f"Client {i+1}: {num_examples} samples, FIT metrics: {list(metrics_dict.keys())}")
             
             for key, value in metrics_dict.items():
                 if key not in metrics_sum:
@@ -604,11 +604,11 @@ class AdaptedStrategy(FedAvg):
         
         # Debug aggregazione finale
         if 'val_loss' in aggregated:
-            print(f"✅ Aggregated FIT Validation Loss: {aggregated['val_loss']:.6f}")
+            print(f"Aggregated FIT Validation Loss: {aggregated['val_loss']:.6f}")
         if 'val_auc_roc' in aggregated:
-            print(f"✅ Aggregated FIT AUC ROC: {aggregated['val_auc_roc']:.6f}")
+            print(f"Aggregated FIT AUC ROC: {aggregated['val_auc_roc']:.6f}")
         if 'val_specificity' in aggregated:
-            print(f"✅ Aggregated FIT Specificity: {aggregated['val_specificity']:.6f}")
+            print(f"Aggregated FIT Specificity: {aggregated['val_specificity']:.6f}")
 
         aggregated['total_clients'] = len(metrics)
         aggregated['total_samples'] = total_examples
@@ -644,18 +644,18 @@ def get_evaluate():
         X_global, y_global = load_server_data()
         input_shape = X_global.shape[1]
     except Exception as e:
-        print(f"❌ Errore caricamento dati server: {e}")
+        print(f"Errore caricamento dati server: {e}")
         X_global = np.random.random((100, 30)).astype(np.float32)
         y_global = np.random.randint(0, 2, 100).astype(np.float32)
         input_shape = 30
-        print("🔄 Usando dati sintetici per server")
+        print("Usando dati sintetici per server")
 
     def evaluate(server_round, parameters, config):
         """Valutazione globale"""
         print(f"\n=== VALUTAZIONE GLOBALE ROUND {server_round} ===")
 
         try:
-            # Crea modello adattato (architettura [256, 128, 64, 32])
+            # Crea modello (architettura [256, 128, 64, 32])
             model = create_server_model(input_shape)
             
             # Verifica compatibilità pesi
@@ -730,23 +730,23 @@ def get_evaluate():
                     auc_manual = auc_roc
                     
             except Exception as calc_error:
-                print(f"⚠️ Errore calcoli aggiuntivi: {calc_error}")
+                print(f"Errore calcoli aggiuntivi: {calc_error}")
                 specificity = 0.0
                 balanced_accuracy = accuracy
                 auc_manual = auc_roc
             
             # Risultati dettagliati con valori
-            print(f"📊 RISULTATI VALUTAZIONE GLOBALE:")
-            print(f"   📈 Loss: {loss:.6f}")
-            print(f"   📈 Accuracy: {accuracy:.4f} ({accuracy*100:.1f}%) {'🎯' if accuracy >= 0.90 else ''}")
-            print(f"   📈 Precision: {precision:.4f} ({precision*100:.1f}%) {'🎯' if precision >= 0.90 else ''}")
-            print(f"   📈 Recall: {recall:.4f} ({recall*100:.1f}%) {'🎯' if recall >= 0.90 else ''}")
-            print(f"   📈 F1-Score: {f1_score:.4f} ({f1_score*100:.1f}%) {'🎯' if f1_score >= 0.90 else ''}")
-            print(f"   📈 AUC-ROC: {auc_manual:.4f} ({auc_manual*100:.1f}%)")
-            print(f"   📈 AUC-PR: {auc_pr:.4f} ({auc_pr*100:.1f}%)")
-            print(f"   📈 Specificity: {specificity:.4f} ({specificity*100:.1f}%)")
-            print(f"   📈 Balanced Accuracy: {balanced_accuracy:.4f}")
-            
+            print(f"RISULTATI VALUTAZIONE GLOBALE:")
+            print(f"Loss: {loss:.6f}")
+            print(f"Accuracy: {accuracy:.4f} ({accuracy*100:.1f}%) {'🎯' if accuracy >= 0.90 else ''}")
+            print(f"Precision: {precision:.4f} ({precision*100:.1f}%) {'🎯' if precision >= 0.90 else ''}")
+            print(f"Recall: {recall:.4f} ({recall*100:.1f}%) {'🎯' if recall >= 0.90 else ''}")
+            print(f"F1-Score: {f1_score:.4f} ({f1_score*100:.1f}%) {'🎯' if f1_score >= 0.90 else ''}")
+            print(f"AUC-ROC: {auc_manual:.4f} ({auc_manual*100:.1f}%)")
+            print(f"AUC-PR: {auc_pr:.4f} ({auc_pr*100:.1f}%)")
+            print(f"Specificity: {specificity:.4f} ({specificity*100:.1f}%)")
+            print(f"Balanced Accuracy: {balanced_accuracy:.4f}")
+
             # Check target raggiunti
             targets_met = {
                 'accuracy_90': accuracy >= 0.90,
@@ -761,7 +761,7 @@ def get_evaluate():
                 print(f"TUTTI I TARGET RAGGIUNTI GLOBALMENTE!")
             else:
                 missed = [k for k, v in targets_met.items() if not v]
-                print(f"   ⚠️ Target mancati globalmente: {missed}")
+                print(f"Target mancati globalmente: {missed}")
             
             # Metriche complete per tracking
             eval_metrics = {
@@ -779,7 +779,7 @@ def get_evaluate():
             }
 
             # DEBUG MIGLIORATO
-            print(f"📊 METRICHE INVIATE AL TRACKER (Round {server_round}):")
+            print(f"METRICHE INVIATE AL TRACKER (Round {server_round}):")
             for key, value in eval_metrics.items():
                 if isinstance(value, float) and 'global_' in key:
                     print(f"   {key}: {value:.6f}")
@@ -787,7 +787,7 @@ def get_evaluate():
             return float(loss), eval_metrics
             
         except Exception as e:
-            print(f"❌ Errore valutazione globale adattata: {e}")
+            print(f"Errore valutazione globale adattata: {e}")
             import traceback
             traceback.print_exc()
             return 1.0, {"error": str(e), "global_samples": len(X_global), "architecture_compatible": False}
@@ -795,21 +795,21 @@ def get_evaluate():
 # MAIN FUNCTION
 def main():
     """Funzione principale del server"""
-    print(f"\n🚀 AVVIO SERVER SMARTGRID ADATTATO AI CLIENT")
+    print(f"\nAVVIO SERVER SMARTGRID")
     print("=" * 80)
     print(f"🔧 Framework: Flower (FedAvg)")
     print("=" * 80)
     
     try:
         config = AdaptedServerConfig()
-        print(f"📊 Configurazione server adattata:")
-        print(f"   🔄 Rounds: {config.NUM_ROUNDS}")
-        print(f"   👥 Min client: {config.MIN_CLIENTS}")
-        print(f"   📐 Architettura: {config.HIDDEN_LAYERS}")
-        print(f"   🎛️ Learning Rate: {config.LEARNING_RATE}")
-        print(f"   📊 Input features: {config.TOTAL_FEATURES}")
-        print(f"   ✅ Versione: {config.VERSION}")
-        
+        print(f"Configurazione server adattata:")
+        print(f"Rounds: {config.NUM_ROUNDS}")
+        print(f"Min client: {config.MIN_CLIENTS}")
+        print(f"Architettura: {config.HIDDEN_LAYERS}")
+        print(f"Learning Rate: {config.LEARNING_RATE}")
+        print(f"Input features: {config.TOTAL_FEATURES}")
+        print(f"Versione: {config.VERSION}")
+
         # Strategia federata adattata
         strategy = AdaptedStrategy(
             fraction_fit=1.0,
@@ -823,9 +823,9 @@ def main():
         
         server_config = fl.server.ServerConfig(num_rounds=config.NUM_ROUNDS)
         
-        print("\n✅ Server adattato configurato e pronto!")
-        print("🔗 In attesa di connessioni client...")
-        print("💡 Avviare i client per iniziare il federated learning")
+        print("\nServer configurato e pronto!")
+        print("In attesa di connessioni client...")
+        print("Avviare i client per iniziare il federated learning")
         print("=" * 80)
         
         # Avvio server Flower
@@ -836,22 +836,22 @@ def main():
         )
         
     except KeyboardInterrupt:
-        print(f"\n🛑 Server fermato dall'utente")
+        print(f"\nServer fermato dall'utente")
     except Exception as e:
-        print(f"\n❌ Errore critico server: {e}")
+        print(f"\nErrore critico server: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
     finally:
         # Genera report finale sempre
-        print(f"\n📊 Generazione report finale...")
+        print(f"\nGenerazione report finale...")
         global GLOBAL_METRICS_TRACKER
         if GLOBAL_METRICS_TRACKER:
             try:
                 GLOBAL_METRICS_TRACKER.generate_final_report()
-                print(f"✅ Report generato con successo!")
+                print(f"Report generato con successo!")
             except Exception as e:
-                print(f"⚠️ Errore generazione report: {e}")
+                print(f"Errore generazione report: {e}")
 
         print(f"\nSERVER SMARTGRID TERMINATO!")
 

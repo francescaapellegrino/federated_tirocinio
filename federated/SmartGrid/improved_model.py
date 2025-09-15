@@ -12,24 +12,24 @@ def create_improved_model(input_shape: int, config=None):
     
     # VERIFICA COMPATIBILITÀ INPUT
     if input_shape != 30:
-        print(f"⚠️ Warning: input_shape {input_shape} != 30, forzo a 30 per compatibilità")
+        print(f"Warning: input_shape {input_shape} != 30, forzo a 30 per compatibilità")
         input_shape = 30
     
     tf.random.set_seed(42)
     np.random.seed(42)
     
-    print(f"🔧 MODELLO:")
-    print(f"   📐 Input garantito: {input_shape} features")
+    print(f"MODELLO:")
+    print(f"Input garantito: {input_shape} features")
     
     # CONFIGURAZIONE
     class CompatibleImprovedConfig:
         # Architettura
-        HIDDEN_LAYERS = [256, 128, 64, 32]  # Più ampia del sistema attuale
+        HIDDEN_LAYERS = [256, 128, 64, 32]
         DROPOUT_RATES = [0.3, 0.4, 0.3, 0.2]  # Dropout progressivo
 
         # Parametri per convergenza
-        LEARNING_RATE = 0.0015  # Più conservativo per stabilità
-        L2_REG = 0.0001  # Regularization moderata
+        LEARNING_RATE = 0.0015
+        L2_REG = 0.0001
         
         # Ottimizzazioni avanzate
         USE_BATCH_NORM = True
@@ -48,7 +48,7 @@ def create_improved_model(input_shape: int, config=None):
         # Input layer
         keras.layers.Input(shape=(input_shape,), name="input_features"),
         
-        # Layer 1 (più ampio)
+        # Layer 1
         keras.layers.Dense(
             improved_config.HIDDEN_LAYERS[0],  # 256 neuroni
             kernel_regularizer=keras.regularizers.L2(improved_config.L2_REG),
@@ -58,8 +58,8 @@ def create_improved_model(input_shape: int, config=None):
         keras.layers.Activation('relu', name="activation_1"),
         keras.layers.BatchNormalization(name="batch_norm_1") if improved_config.USE_BATCH_NORM else keras.layers.Identity(),
         keras.layers.Dropout(improved_config.DROPOUT_RATES[0], name="dropout_1"),
-        
-        # Layer 2 (migliorato)
+
+        # Layer 2
         keras.layers.Dense(
             improved_config.HIDDEN_LAYERS[1],  # 128 neuroni
             kernel_regularizer=keras.regularizers.L2(improved_config.L2_REG),
@@ -69,8 +69,8 @@ def create_improved_model(input_shape: int, config=None):
         keras.layers.Activation('relu', name="activation_2"),
         keras.layers.BatchNormalization(name="batch_norm_2") if improved_config.USE_BATCH_NORM else keras.layers.Identity(),
         keras.layers.Dropout(improved_config.DROPOUT_RATES[1], name="dropout_2"),
-        
-        # Layer 3 (migliorato)
+
+        # Layer 3
         keras.layers.Dense(
             improved_config.HIDDEN_LAYERS[2],  # 64 neuroni
             kernel_regularizer=keras.regularizers.L2(improved_config.L2_REG),
@@ -80,8 +80,8 @@ def create_improved_model(input_shape: int, config=None):
         keras.layers.Activation('relu', name="activation_3"),
         keras.layers.BatchNormalization(name="batch_norm_3") if improved_config.USE_BATCH_NORM else keras.layers.Identity(),
         keras.layers.Dropout(improved_config.DROPOUT_RATES[2], name="dropout_3"),
-        
-        # Layer 4 (nuovo, migliorato)
+
+        # Layer 4
         keras.layers.Dense(
             improved_config.HIDDEN_LAYERS[3],  # 32 neuroni
             kernel_regularizer=keras.regularizers.L2(improved_config.L2_REG),
@@ -92,7 +92,7 @@ def create_improved_model(input_shape: int, config=None):
         keras.layers.BatchNormalization(name="batch_norm_4") if improved_config.USE_BATCH_NORM else keras.layers.Identity(),
         keras.layers.Dropout(improved_config.DROPOUT_RATES[3], name="dropout_4"),
         
-        # Output layer (identico)
+        # Output layer
         keras.layers.Dense(
             1, 
             activation="sigmoid",
@@ -110,7 +110,7 @@ def create_improved_model(input_shape: int, config=None):
     )
     
     def weighted_binary_crossentropy(pos_weight=2.0):
-        """Loss pesata per migliorare recall mantenendo precision"""
+        """Loss pesata"""
         def loss_fn(y_true, y_pred):
             # Converti a float32
             y_true = tf.cast(y_true, tf.float32)
@@ -142,18 +142,18 @@ def create_improved_model(input_shape: int, config=None):
         ]
     )
     
-    print(f"🎯 MODELLO CREATO:")
-    print(f"   📐 Architettura: {' → '.join(map(str, improved_config.HIDDEN_LAYERS))} → 1")
-    print(f"   🎛️ Parametri totali: {model.count_params():,}")
-    print(f"   🧠 Activation: {improved_config.ACTIVATION}")
+    print(f"MODELLO CREATO:")
+    print(f"Architettura: {' → '.join(map(str, improved_config.HIDDEN_LAYERS))} → 1")
+    print(f"Parametri totali: {model.count_params():,}")
+    print(f"Activation: {improved_config.ACTIVATION}")
     
     return model
 
 def create_advanced_callbacks(config=None):
-    """Callbacks avanzati per training ottimizzato"""
+    """Callbacks per training ottimizzato"""
     
     callbacks = [
-        # Early Stopping più paziente
+        # Early Stopping
         keras.callbacks.EarlyStopping(
             monitor='val_loss',
             patience=12,
@@ -166,7 +166,7 @@ def create_advanced_callbacks(config=None):
         # Learning Rate Scheduler
         keras.callbacks.ReduceLROnPlateau(
             monitor='val_loss',
-            factor=0.7,  # Riduzione moderata
+            factor=0.7,
             patience=5,
             min_lr=1e-7,
             verbose=1,
@@ -179,8 +179,8 @@ def create_advanced_callbacks(config=None):
             verbose=0
         )
     ]
-    
-    print(f"📊 CALLBACKS:")
+
+    print(f"CALLBACKS:")
     print(f"EarlyStopping: patience=12, min_delta=0.0001")
     print(f"ReduceLROnPlateau: factor=0.7, patience=5")
     print(f"LearningRateScheduler: exponential decay")

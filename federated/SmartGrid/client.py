@@ -47,10 +47,10 @@ class SmartGridClient(fl.client.NumPyClient):
         from improved_model import create_improved_model
         self.model = create_improved_model(self.X_train.shape[1], self.config)
         
-        print(f"✅ Client {client_id} migliorato inizializzato")
-        print(f"   📊 Features: {self.X_train.shape[1]}")
-        print(f"   📊 Train: {len(self.X_train)} samples")
-        print(f"   📊 Attack ratio: {self.y_train.mean()*100:.1f}%")
+        print(f"Client {client_id} migliorato inizializzato")
+        print(f"Features: {self.X_train.shape[1]}")
+        print(f"Train: {len(self.X_train)} samples")
+        print(f"Attack ratio: {self.y_train.mean()*100:.1f}%")
     
     def _compute_class_weights(self):
         """Calcola pesi per bilanciare le classi"""
@@ -62,7 +62,7 @@ class SmartGridClient(fl.client.NumPyClient):
             )
             weight_dict = {0: class_weights[0], 1: class_weights[1]}
             
-            print(f"   ⚖️ Class weights: Normal={class_weights[0]:.2f}, Attack={class_weights[1]:.2f}")
+            print(f"Class weights: Normal={class_weights[0]:.2f}, Attack={class_weights[1]:.2f}")
             return weight_dict
         else:
             return None
@@ -144,15 +144,15 @@ class SmartGridClient(fl.client.NumPyClient):
                 val_sensitivity = val_recall
                 
         except Exception as e:
-            print(f"   ⚠️ Errore calcolo metriche aggiuntive: {e}")
+            print(f"Errore calcolo metriche aggiuntive: {e}")
             val_auc_roc = 0.5
             val_specificity = 0.0
             val_sensitivity = val_recall
         
         print(f"[IMPROVED Client {self.client_id}] Training completato:")
-        print(f"   🎯 Train - Acc: {train_acc:.4f}, Prec: {train_precision:.4f}, Rec: {train_recall:.4f}, F1: {train_f1:.4f}")
-        print(f"   🎯 Val - Acc: {val_acc:.4f}, Prec: {val_precision:.4f}, Rec: {val_recall:.4f}, F1: {val_f1:.4f}")
-        print(f"   📊 Val - AUC: {val_auc_roc:.4f}, Spec: {val_specificity:.4f}, Sens: {val_sensitivity:.4f}")
+        print(f"Train - Acc: {train_acc:.4f}, Prec: {train_precision:.4f}, Rec: {train_recall:.4f}, F1: {train_f1:.4f}")
+        print(f"Val - Acc: {val_acc:.4f}, Prec: {val_precision:.4f}, Rec: {val_recall:.4f}, F1: {val_f1:.4f}")
+        print(f"Val - AUC: {val_auc_roc:.4f}, Spec: {val_specificity:.4f}, Sens: {val_sensitivity:.4f}")
         
         # Metriche enhanced con valori garantiti scalari
         metrics = {
@@ -243,15 +243,15 @@ class SmartGridClient(fl.client.NumPyClient):
         sensitivity = recall  # Same as recall
         balanced_accuracy = (sensitivity + specificity) / 2
         
-        print(f"[IMPROVED Client {self.client_id}] Results:")
-        print(f"   🎯 Accuracy: {accuracy:.4f} ({'✅' if accuracy >= 0.90 else '❌'} target: >90%)")
-        print(f"   🎯 Precision: {precision:.4f} ({'✅' if precision >= 0.90 else '❌'} target: >90%)")
-        print(f"   🎯 Recall: {recall:.4f} ({'✅' if recall >= 0.90 else '❌'} target: >90%)")
-        print(f"   🎯 F1-Score: {f1_score:.4f} ({'✅' if f1_score >= 0.90 else '❌'} target: >90%)")
-        print(f"   📊 AUC-ROC: {auc_roc:.4f}")
-        print(f"   📊 Specificity: {specificity:.4f}")
-        print(f"   📊 Balanced Acc: {balanced_accuracy:.4f}")
-        print(f"   🔢 Confusion: TN={tn}, FP={fp}, FN={fn}, TP={tp}")
+        print(f"[Client {self.client_id}] Results:")
+        print(f"Accuracy: {accuracy:.4f} ({'✅' if accuracy >= 0.90 else '❌'} target: >90%)")
+        print(f"Precision: {precision:.4f} ({'✅' if precision >= 0.90 else '❌'} target: >90%)")
+        print(f"Recall: {recall:.4f} ({'✅' if recall >= 0.90 else '❌'} target: >90%)")
+        print(f"F1-Score: {f1_score:.4f} ({'✅' if f1_score >= 0.90 else '❌'} target: >90%)")
+        print(f"AUC-ROC: {auc_roc:.4f}")
+        print(f"Specificity: {specificity:.4f}")
+        print(f"Balanced Acc: {balanced_accuracy:.4f}")
+        print(f"Confusion: TN={tn}, FP={fp}, FN={fn}, TP={tp}")
         
         # Verifica target raggiunti
         targets_met = {
@@ -264,11 +264,11 @@ class SmartGridClient(fl.client.NumPyClient):
         all_targets = all(targets_met.values())
         
         if all_targets:
-            print(f"   🎉 TUTTI I TARGET >90% RAGGIUNTI! 🎉")
+            print(f"Target raggiunti!")
         else:
             missed = [k for k, v in targets_met.items() if not v]
-            print(f"   ⚠️ Target mancati: {missed}")
-        
+            print(f"Target mancati: {missed}")
+
         metrics = {
             'test_loss': float(loss),
             'test_accuracy': float(accuracy),
