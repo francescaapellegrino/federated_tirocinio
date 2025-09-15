@@ -1,119 +1,83 @@
 ====================================================================================================
-REPORT COMPLETO ANALISI ATTACCHI PRIVACY
-FEDERATED LEARNING - SMARTGRID SECURITY ANALYSIS
-====================================================================================================
-📅 Data generazione: 2025-09-13 10:21:07
-👩‍💻 Sviluppatore: Francesca Pellegrino
-🎯 Progetto: Tirocinio Federated Learning - Privacy Attacks
-📁 Directory analizzata: /Users/francesca/Desktop/federated_learning/federated/SmartGrid
+REPORT COMPLETO ANALISI ATTACCHI INFERENCE
+FEDERATED LEARNING - SMARTGRID ANALYSIS
 ====================================================================================================
 
-📊 EXECUTIVE SUMMARY
+EXECUTIVE SUMMARY
 --------------------------------------------------
-📄 File di esperimenti analizzati: 50
-👥 Client federati testati: 1
-🎯 Attacchi totali tentati: 150
-✅ Attacchi riusciti: 140
-📈 Tasso di successo complessivo: 93.33%
-📊 Media attacchi per client: 150.0
-👥 Client IDs analizzati: 5
+File di esperimenti analizzati: 50
+Client federati testati: 1
+Attacchi totali tentati: 150
+Attacchi riusciti: 140
+Tasso di successo complessivo: 93.33%
+Media attacchi per client: 150.0
+Client IDs analizzati: 5
 
-🔍 ANALISI DETTAGLIATA PER TIPOLOGIA DI ATTACCO
+ANALISI DETTAGLIATA PER TIPOLOGIA DI ATTACCO
 --------------------------------------------------------------------------------
 
 🎯 MEMBERSHIP INFERENCE ATTACK
-   📊 Tentativi totali: 50
-   ✅ Successi: 50
-   📈 Tasso successo: 100.00%
-   📊 Statistiche metriche (50 campioni):
-      📊 Media: 0.6402
-      📊 Deviazione std: 0.0039
-      📊 Min-Max: 0.6303 - 0.6483
-      📊 Mediana: 0.6404
+   Tentativi totali: 50
+   Successi: 50
+   Tasso successo: 100.00%
+   Statistiche metriche (50 campioni):
+      Media: 0.6402
+      Deviazione std: 0.0039
+      Min-Max: 0.6303 - 0.6483
+      Mediana: 0.6404
 
 🎯 PROPERTY INFERENCE ATTACK
-   📊 Tentativi totali: 50
-   ✅ Successi: 50
-   📈 Tasso successo: 100.00%
-   📊 Statistiche metriche (50 campioni):
-      📊 Media: 0.1258
-      📊 Deviazione std: 0.0183
-      📊 Min-Max: 0.0701 - 0.1588
-      📊 Mediana: 0.1243
+   Tentativi totali: 50
+   Successi: 50
+   Tasso successo: 100.00%
+   Statistiche metriche (50 campioni):
+      Media: 0.1258
+      Deviazione std: 0.0183
+      Min-Max: 0.0701 - 0.1588
+      Mediana: 0.1243
 
 🎯 MODEL INVERSION ATTACK
-   📊 Tentativi totali: 50
-   ✅ Successi: 40
-   📈 Tasso successo: 80.00%
-   📊 Statistiche metriche (40 campioni):
-      📊 Media: 0.9595
-      📊 Deviazione std: 0.0317
-      📊 Min-Max: 0.8516 - 0.9852
-      📊 Mediana: 0.9717
+   Tentativi totali: 50
+   Successi: 40
+   Tasso successo: 80.00%
+   Statistiche metriche (40 campioni):
+      Media: 0.9595
+      Deviazione std: 0.0317
+      Min-Max: 0.8516 - 0.9852
+      Mediana: 0.9717
 
-👥 ANALISI DETTAGLIATA PER CLIENT
+ANALISI DETTAGLIATA PER CLIENT
 --------------------------------------------------
-
 🔹 CLIENT 5:
-   📄 Esperimenti eseguiti: 50
-   🎯 Attacchi totali: 150
-   ✅ Attacchi riusciti: 140
-   📈 Tasso successo: 93.33%
-   ⚠️ Rischio privacy medio: 0.6253
-   ⚠️ Rischio privacy massimo: 0.7076
-   📊 Breakdown successi:
-      🔍 Membership Inference: 50
-      🔍 Property Inference: 50
-      🔍 Model Inversion: 40
+   Esperimenti eseguiti: 50
+   Attacchi totali: 150
+   Attacchi riusciti: 140
+   Tasso successo: 93.33%
+   Rischio privacy medio: 0.6253
+   Rischio privacy massimo: 0.7076
+   Breakdown successi:
+      Membership Inference: 50
+      Property Inference: 50
+      Model Inversion: 40
 
-📈 ANALISI PATTERN DI SUCCESSO
---------------------------------------------------
-🎯 Esperimenti con tutti gli attacchi riusciti: 40
-🎯 Esperimenti con successo parziale: 10
-🎯 Esperimenti senza successi: 0
+CLIENT Vulnerabilità 0.7793 (Successo: 93.3%)
 
-⚠️ CLIENT PIÙ VULNERABILI (Top 5):
-----------------------------------------
-   1. Client 5: Vulnerabilità 0.7793 (Successo: 93.3%)
-
-🏆 RANKING EFFICACIA ATTACCHI:
+RANKING EFFICACIA ATTACCHI:
 ----------------------------------------
    1. Membership Inference Attack: 100.00% successo
    2. Property Inference Attack: 100.00% successo
    3. Model Inversion Attack: 80.00% successo
 
-⚠️ ANALISI RISCHIO PRIVACY
-----------------------------------------
-📊 Campioni analizzati: 50
-📊 Rischio medio: 0.6253
-📊 Deviazione standard: 0.1225
-📊 Range rischio: 0.3753 - 0.7076
-📊 Rischio mediano: 0.6892
-
-🚨 DISTRIBUZIONE LIVELLI DI RISCHIO:
-   🔴 Alto rischio (>0.7): 10 esperimenti
-   🟡 Medio rischio (0.3-0.7): 40 esperimenti
-   🟢 Basso rischio (<0.3): 0 esperimenti
-
-💡 CONCLUSIONI E RACCOMANDAZIONI
+💡 CONCLUSIONI
 --------------------------------------------------
-
-🚨 LIVELLO DI RISCHIO COMPLESSIVO: CRITICO
 📈 Tasso successo attacchi: 93.3%
 
-💡 RACCOMANDAZIONI:
-   1. Il sistema federato presenta vulnerabilità critiche alla privacy
-   2. È necessario implementare tecniche di privacy-preserving ML
-   3. Considerare l'uso di Differential Privacy
-   4. Implementare tecniche di Secure Aggregation
-   5. Valutare l'uso di Homomorphic Encryption
 
 📋 APPENDICE TECNICA
 ------------------------------
 📄 File analizzati: 50
 📄 File caricati con successo: 50
 📄 File con errori: 0
-🕐 Timestamp aggregazione: 2025-09-13T10:21:07.993387
 
 📂 DETTAGLI FILE ANALIZZATI:
    1. attack_results_compatible_client_5_20250913_100059.json (Client: 5, Timestamp: 2025-09-13T10:00:59)
@@ -169,6 +133,5 @@ FEDERATED LEARNING - SMARTGRID SECURITY ANALYSIS
 
 ====================================================================================================
 END OF REPORT
-Generato da AttackResultsAggregator v1.0
 Francesca Pellegrino - Tirocinio Federated Learning
 ====================================================================================================
