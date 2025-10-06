@@ -1,4 +1,4 @@
-RESOCONTO ADDESTRAMENTO FEDERATO SMARTGRID
+RESOCONTO ADDESTRAMENTO FEDERATO SMARTGRID con 5 client che utilizzano 5 file dei 15 originali
 ================================================================================
 Rounds completati: 150
 Framework: Flower Federated Learning

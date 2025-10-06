@@ -1,5 +1,5 @@
 """
-Server federato SmartGrid
+Server federato SmartGrid con Rete Neurale
 Francesca Pellegrino
 """
 
@@ -46,7 +46,7 @@ class AdaptedServerConfig:
 
     # Server specific
     NUM_ROUNDS = 50
-    MIN_CLIENTS = 2
+    MIN_CLIENTS = 5
     VERSION = "2.0"
     RANDOM_SEED = 42
 
@@ -594,7 +594,7 @@ class AdaptedStrategy(FedAvg):
                     metrics_sum[key] += num_examples * value
                     # Debug delle metriche principali
                     if key in ['val_loss', 'val_auc_roc', 'val_specificity']:
-                        print(f"      ✅ {key}: {value:.6f}")
+                        print(f" OK {key}: {value:.6f}")
         
         # Calcola medie pesate
         aggregated = {}
@@ -661,15 +661,15 @@ def get_evaluate():
             # Verifica compatibilità pesi
             model_weights = model.get_weights()
             if len(parameters) != len(model_weights):
-                print(f"⚠️ Incompatibilità pesi: ricevuti {len(parameters)}, attesi {len(model_weights)}")
+                print(f"Incompatibilità pesi: ricevuti {len(parameters)}, attesi {len(model_weights)}")
                 return 1.0, {"error": "weight_mismatch", "global_samples": len(X_global)}
             
             # Verifica compatibilità dimensioni
             try:
                 model.set_weights(parameters)
-                print(f"✅ Pesi caricati con successo - Architettura compatibile!")
+                print(f"Pesi caricati con successo - Architettura compatibile!")
             except Exception as weight_error:
-                print(f"❌ Errore caricamento pesi: {weight_error}")
+                print(f"Errore caricamento pesi: {weight_error}")
                 return 1.0, {"error": f"weight_loading_failed: {weight_error}", "global_samples": len(X_global)}
 
             # Valutazione con estrazione sicura dei valori
@@ -705,7 +705,7 @@ def get_evaluate():
                     auc_pr = 0.5
                     
             except Exception as eval_error:
-                print(f"❌ Errore valutazione modello: {eval_error}")
+                print(f"Errore valutazione modello: {eval_error}")
                 return 1.0, {"error": f"evaluation_failed: {eval_error}", "global_samples": len(X_global)}
             
             # Calcoli aggiuntivi per analisi dettagliata

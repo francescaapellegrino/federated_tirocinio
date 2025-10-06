@@ -26,8 +26,8 @@ from datetime import datetime
 import traceback
 
 # Import per preprocessing   
-from improved_preprocessing import load_improved_client_data
-from improved_model import create_improved_model, create_advanced_callbacks
+from federated.SmartGrid.preprocessing import load_improved_client_data
+from federated.SmartGrid.model import create_improved_model, create_advanced_callbacks
 from sklearn.utils.class_weight import compute_class_weight
 
 def sanitize_json(obj):
