@@ -3,7 +3,7 @@
 # Script di avvio per lanciare 15 client federati SmartGrid uno alla volta
 # Usa python3, lancia ogni client con 1 secondo di intervallo
 
-CLIENT_SCRIPT="fed_RF_client.py"
+CLIENT_SCRIPT="fed_RF_client_incremental.py"
 
 for i in $(seq 1 15)
 do
