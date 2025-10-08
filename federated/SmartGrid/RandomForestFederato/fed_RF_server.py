@@ -1,49 +1,38 @@
+"""
+Server federato SmartGrid con Random Forest
+Francesca Pellegrino
+"""
+
 import flwr as fl
 import pickle
 import zlib
 import numpy as np
+import random
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, log_loss
 import warnings
 warnings.filterwarnings("ignore")
 
+# Imposta seed globale per numpy e random per riproducibilità
+np.random.seed(42)
+random.seed(42)
+
 ALL_CLIENT_METRICS = []
 GLOBAL_METRICS = []
 
-def load_validation_data_raw():
-    import os
-    import pandas as pd
-    import numpy as np
-    from sklearn.model_selection import train_test_split
-
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(script_dir, "..", "..", "data", "SmartGrid", "data1.csv")
-    df = pd.read_csv(file_path)
-    X = df.drop(columns=["marker"])
-    y = (df["marker"] != "Natural").astype(int)
-
-    # Pulizia minima
-    X = X.replace([np.inf, -np.inf], np.nan)
-    for col in X.columns:
-        if X[col].isnull().sum() > 0:
-            median_val = X[col].median()
-            X[col].fillna(median_val, inplace=True)
-
-    # Split 85% train+val, 15% test (come i client)
-    X_temp, X_test, y_temp, y_test = train_test_split(
-        X, y, test_size=0.15, random_state=42, stratify=y
-    )
-    X_train, X_val, y_train, y_val = train_test_split(
-        X_temp, y_temp, test_size=0.118, random_state=42, stratify=y_temp
-    )
-    return np.array(X_val), np.array(y_val)
+def load_validation_data():
+    # Usa il preprocessing del progetto per caricare dati di validazione centrale.
+    from federated.SmartGrid.RandomForestFederatoIncrementale.preprocessing import load_improved_client_data
+    # Prendi il validation set dal client 1 (puoi modificarlo)
+    _, _, X_val, y_val, _, _, _ = load_improved_client_data(1, None)
+    return X_val, y_val
 
 def aggregate_random_forest(client_parameters_list, max_global_trees=100, X_val=None, y_val=None):
     all_estimators = []
     n_features_in_ = None
     classes_ = None
 
-    # Estrai SOLO i nuovi alberi dei client (compressed)
+    # Estrai solo i nuovi alberi dei client
     for i, params in enumerate(client_parameters_list):
         try:
             arr_list = fl.common.parameters_to_ndarrays(params)
@@ -82,10 +71,10 @@ def aggregate_random_forest(client_parameters_list, max_global_trees=100, X_val=
         all_estimators = [t[0] for t in tree_scores[:max_global_trees]]
         print(f"[SERVER] Selezionati i migliori {len(all_estimators)} alberi.")
     else:
-        # Fallback: random selection
+        # Fallback: random selection con random seed fisso per riproducibilità
         if len(all_estimators) > max_global_trees:
-            import random
-            print(f"[SERVER] Limito a {max_global_trees} alberi")
+            random.seed(42)  # <-- FISSO
+            print(f"[SERVER] Limito a {max_global_trees} alberi (selezione casuale riproducibile)")
             all_estimators = random.sample(all_estimators, max_global_trees)
 
     agg_model_data = {
@@ -104,7 +93,8 @@ def evaluate_global_model(agg_model_data, X_val, y_val, round_num, filename="fed
         print("[SERVER] Nessun albero aggregato!")
         return
 
-    model = RandomForestClassifier(n_estimators=len(all_estimators))
+    # Ricostruisci il modello globale federato
+    model = RandomForestClassifier(n_estimators=len(all_estimators), random_state=42)
     model.estimators_ = all_estimators
     model.n_features_in_ = agg_model_data["n_features_in_"]
     model.classes_ = agg_model_data["classes_"]
@@ -152,8 +142,7 @@ def evaluate_global_model(agg_model_data, X_val, y_val, round_num, filename="fed
 
 class FederatedRandomForestStrategy(fl.server.strategy.FedAvg):
     def __init__(self, **kwargs):
-        # MODIFICATO: carica dati grezzi
-        self.X_val_central, self.y_val_central = load_validation_data_raw()
+        self.X_val_central, self.y_val_central = load_validation_data()
         super().__init__(**kwargs)
 
     def aggregate_fit(self, server_round, results, failures):
@@ -196,7 +185,7 @@ def save_metrics_to_file(filename="federated_random_forest_metrics_summary_impro
     print(f"Metriche client salvate in {filename}")
 
 def main():
-    print("\nAVVIO SERVER FEDERATED RANDOM FOREST (NO PREPROCESSING)")
+    print("\nAVVIO SERVER FEDERATED RANDOM FOREST (MIGLIORATO)")
     print("=" * 60)
     print("Aspetto connessione dei client...")
 

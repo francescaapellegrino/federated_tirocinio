@@ -17,8 +17,8 @@ from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score
 from scipy import stats
 from typing import Dict, Any, Tuple
 import warnings
-from preprocessing import load_improved_client_data
-from model import create_improved_model, create_advanced_callbacks
+from federated.SmartGrid.RandomForestFederatoIncrementale.preprocessing import load_improved_client_data
+from federated.SmartGrid.ReteNeurale.DNNmodel import create_improved_model, create_advanced_callbacks
 from sklearn.utils.class_weight import compute_class_weight
 
 warnings.filterwarnings('ignore')
@@ -37,14 +37,14 @@ class SmartGridClient(fl.client.NumPyClient):
         print(f" CLIENT {client_id}")
         
         # Carica dati con preprocessing migliorato
-        from federated.SmartGrid.preprocessing import load_improved_client_data
+        from federated.SmartGrid.RandomForestFederatoIncrementale.preprocessing import load_improved_client_data
         self.X_train, self.y_train, self.X_val, self.y_val, self.X_test, self.y_test, self.dataset_info = load_improved_client_data(client_id, self.config)
         
         # Calcola class weights per dataset sbilanciato
         self.class_weights = self._compute_class_weights()
         
         # Crea modello migliorato
-        from federated.SmartGrid.model import create_improved_model
+        from federated.SmartGrid.ReteNeurale.DNNmodel import create_improved_model
         self.model = create_improved_model(self.X_train.shape[1], self.config)
         
         print(f"Client {client_id} migliorato inizializzato")

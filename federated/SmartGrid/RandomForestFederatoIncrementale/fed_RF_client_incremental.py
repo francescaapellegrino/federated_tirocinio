@@ -1,8 +1,6 @@
 """
-Client federato SmartGrid con Random Forest (Addestramento Incrementale)
+Client federato SmartGrid con Random Forest incrementale
 Francesca Pellegrino
-
-VERSIONE 3: Aggiunto calcolo e invio di metriche più dettagliate.
 """
 
 import flwr as fl
@@ -12,12 +10,12 @@ import zlib
 import random
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+    accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, log_loss
 )
 import sys
 import warnings
 warnings.filterwarnings("ignore")
-from preprocessing import load_improved_client_data
+from federated.SmartGrid.RandomForestFederatoIncrementale.preprocessing import load_improved_client_data
 
 # CONFIGURAZIONE
 N_NEW_TREES = 8
@@ -94,11 +92,14 @@ class IncrementalFederatedClient(fl.client.NumPyClient):
 
         # Calcola metriche di validazione sul modello locale completo (vecchi + nuovi alberi)
         y_pred = self.model.predict(self.X_val)
+        y_pred_proba = self.model.predict_proba(self.X_val)
+        
         acc = accuracy_score(self.y_val, y_pred)
         prec = precision_score(self.y_val, y_pred, zero_division=0)
         rec = recall_score(self.y_val, y_pred, zero_division=0)
         f1 = f1_score(self.y_val, y_pred, zero_division=0)
-        
+        loss = log_loss(self.y_val, y_pred_proba)
+
         # Invia un set completo di metriche al server per il logging
         metrics = {
             "client_id": self.client_id,
@@ -106,13 +107,13 @@ class IncrementalFederatedClient(fl.client.NumPyClient):
             "val_precision": float(prec),
             "val_recall": float(rec),
             "val_f1_score": float(f1),
+            "val_loss": float(loss),
         }
         return [np.frombuffer(compressed_model, dtype=np.uint8)], len(self.X_train), metrics
 
     def evaluate(self, parameters, config):
         print(f"\n[CLIENT {self.client_id}] EVALUATE (Test su Modello Globale)...")
         
-        # Ricostruisci il modello globale ricevuto
         compressed_bytes = parameters[0].tobytes()
         param_bytes = zlib.decompress(compressed_bytes)
         agg_model_data = pickle.loads(param_bytes)
@@ -131,7 +132,6 @@ class IncrementalFederatedClient(fl.client.NumPyClient):
         agg_model.n_classes_ = len(agg_model.classes_)
         agg_model.n_outputs_ = 1
 
-        # Valuta sul test set locale
         y_pred = agg_model.predict(self.X_test)
         acc = accuracy_score(self.y_test, y_pred)
         prec = precision_score(self.y_test, y_pred, zero_division=0)
@@ -151,7 +151,6 @@ class IncrementalFederatedClient(fl.client.NumPyClient):
             "test_recall": float(rec),
             "test_f1_score": float(f1)
         }
-        # La loss è la metrica principale che Flower usa per aggregare i risultati di evaluate
         loss = 1.0 - acc
         return loss, len(self.X_test), metrics
 
@@ -162,9 +161,9 @@ if __name__ == "__main__":
     
     client_id = int(sys.argv[1])
     
-    print(f"\n=== CLIENT RF INCREMENTALE {client_id} (v3 con Logging) ===")
+    print(f"\n=== CLIENT RF INCREMENTALE {client_id} ===")
     
-    max_message_length = 1024 * 1024 * 1024  # 1 GB
+    max_message_length = 1024 * 1024 * 1024
 
     fl.client.start_numpy_client(
         server_address="localhost:8080",
