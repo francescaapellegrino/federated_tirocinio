@@ -15,7 +15,7 @@ from sklearn.metrics import (
 import sys
 import warnings
 warnings.filterwarnings("ignore")
-from federated.SmartGrid.RandomForestFederatoIncrementale.preprocessing import load_improved_client_data
+from preprocessing_common import load_improved_client_data
 
 # CONFIGURAZIONE
 N_NEW_TREES = 8
@@ -31,10 +31,19 @@ class IncrementalFederatedClient(fl.client.NumPyClient):
         self.n_new_trees = n_new_trees
         self.criterion = criterion
         self.random_state = random_state
-        self.X_train, self.y_train, self.X_val, self.y_val, self.X_test, self.y_test, _ = load_improved_client_data(
-            client_id, None
-        )
-        self.model = None
+        #self.X_train, self.y_train, self.X_val, self.y_val, self.X_test, self.y_test, _ = load_improved_client_data(
+            #client_id, None
+        #)
+        #(self.X_train, self.y_train, self.X_val, self.y_val, self.X_test, self.y_test,
+         #_, _) = load_data_for_aia(client_id)
+        #self.model = None
+
+        (
+            self.X_train, self.y_train, 
+            self.X_val, self.y_val, 
+            self.X_test, self.y_test, 
+            _ # Il settimo valore viene ignorato
+        ) = load_improved_client_data(client_id, None)
 
     def get_parameters(self, config):
         # Invia una struttura vuota per compatibilità con il primo round del server

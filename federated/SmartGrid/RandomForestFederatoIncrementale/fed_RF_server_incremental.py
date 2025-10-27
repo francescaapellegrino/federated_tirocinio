@@ -24,8 +24,19 @@ GLOBAL_ESTIMATORS = []
 
 def load_validation_data():
     """Carica un set di validazione centrale per la selezione degli alberi."""
-    from federated.SmartGrid.RandomForestFederatoIncrementale.preprocessing import load_improved_client_data
+    # Il server usa il suo preprocessing stabile e originale.
+    from preprocessing_common import load_improved_client_data
     print("[SERVER] Caricamento validation set centrale (dal client 1)...")
+    
+    # --- MODIFICA CHIAVE: Corretto lo spacchettamento a 7 valori ---
+    # La funzione `load_improved_client_data` restituisce 7 valori.
+    # A noi interessano solo X_val e y_val, quindi ignoriamo gli altri.
+    #_, _, X_val, y_val, _, _, _ = load_improved_client_data(1, None)
+
+    #_, _, X_val, y_val, _, _, _ = load_data_for_aia(client_id=1)
+    #return X_val, y_val
+
+    # ... all'interno di load_validation_data()
     _, _, X_val, y_val, _, _, _ = load_improved_client_data(1, None)
     return X_val, y_val
 
@@ -88,7 +99,7 @@ def evolve_random_forest(current_estimators, client_parameters_list, max_global_
     
     return fl.common.ndarrays_to_parameters([np.frombuffer(compressed_agg, dtype=np.uint8)]), agg_model_data, best_estimators
 
-def evaluate_global_model(agg_model_data, X_val, y_val, round_num, filename="fed_RF_incremental_global_metrics.txt"):
+def evaluate_global_model(agg_model_data, X_val, y_val, round_num, filename="fed_RF_incremental_global_metrics_final.txt"):
     """Valuta il modello globale aggregato e salva le metriche, inclusa la Log Loss."""
     all_estimators = [pickle.loads(est) for est in agg_model_data.get("estimators", [])]
     if not all_estimators:
@@ -158,8 +169,36 @@ class FederatedRandomForestStrategy(fl.server.strategy.FedAvg):
             evaluate_global_model(agg_model_data, self.X_val_central, self.y_val_central, server_round)
             
         return agg_params, {}
+    
+        # --- NUOVO METODO ---
+    def aggregate_evaluate(self, server_round, results, failures):
+        """
+        Sovrascrive l'aggregazione di evaluate per raccogliere le metriche di test
+        e, soprattutto, le metriche dell'attacco (es. mia_accuracy).
+        """
+        print(f"--- AGGREGAZIONE EVALUATE ROUND {server_round} ---")
+        
+        # Raccogli le metriche di test (test_...) e dell'attacco dai client
+        for _, eval_res in results:
+            if hasattr(eval_res, 'metrics') and eval_res.metrics:
+                metrics = eval_res.metrics.copy()
+                metrics['round'] = server_round
+                # Cerca una metrica di validazione esistente per questo client e round
+                # per unire tutto in un'unica riga nel file di log.
+                found = False
+                for existing_metric in ALL_CLIENT_METRICS:
+                    if existing_metric.get('client_id') == metrics.get('client_id') and \
+                       existing_metric.get('round') == server_round:
+                        existing_metric.update(metrics)
+                        found = True
+                        break
+                if not found:
+                    ALL_CLIENT_METRICS.append(metrics)
+        
+        # Chiama il metodo originale della superclasse per ottenere la loss aggregata
+        return super().aggregate_evaluate(server_round, results, failures)
 
-def save_client_metrics_to_file(filename="fed_RF_incremental_client_metrics.txt"):
+def save_client_metrics_to_file(filename="fed_RF_incremental_client_metrics_final.txt"):
     if not ALL_CLIENT_METRICS: return
     all_keys = sorted(list(set(k for m in ALL_CLIENT_METRICS for k in m.keys())))
     with open(filename, "w", encoding="utf-8") as f:
@@ -172,9 +211,11 @@ def main():
     print("\nAVVIO SERVER FEDERATED RANDOM FOREST INCREMENTALE")
     
     strategy = FederatedRandomForestStrategy(
-        fraction_fit=5/15,
+        fraction_fit=5/14,
         min_fit_clients=5,
-        min_available_clients=15,
+        min_available_clients=14,
+        fraction_evaluate=1.0,
+        min_evaluate_clients=14,
     )
     
     server_config = fl.server.ServerConfig(num_rounds=200)

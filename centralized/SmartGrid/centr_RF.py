@@ -14,14 +14,14 @@ from sklearn.metrics import (
 import warnings
 warnings.filterwarnings("ignore")
 
-from preprocessing import load_improved_client_data
+from preprocessing_common import load_improved_client_data
 
 # CONFIGURAZIONE
 N_TREES = 100         # Numero alberi Random Forest
 CRITERION = "gini"    # Splitting rule: "gini" oppure "entropy"
 RANDOM_STATE = 42     # Per riproducibilità
 CLIENT_IDS = list(range(1, 16))  # Unisci tutti i client (1-15)
-METRICS_FILENAME = "centralized_RF_summary_metrics.txt"
+METRICS_FILENAME = "centralized_RF_summary_metrics_commonfeat.txt"
 
 def load_centralized_data(client_ids):
     """

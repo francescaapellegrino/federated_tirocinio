@@ -21,7 +21,7 @@ def load_improved_client_data(client_id: int, config):
     # 1. Caricamento
     import os
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(script_dir, "..", "..", "..", "data", "SmartGrid", f"data{client_id}.csv")
+    file_path = os.path.join(script_dir, "..", "..", "data", "SmartGrid", f"data{client_id}.csv")
 
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File {file_path} non trovato")
