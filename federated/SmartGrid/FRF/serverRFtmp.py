@@ -63,17 +63,18 @@ RF_BOOTSTRAP = True       # Usa bootstrap sampling
 RF_CLASS_WEIGHT = 'balanced_subsample'  # CAMBIATO: migliore per federated learning
 RF_CRITERION = 'entropy'  # Criterio di splitting (dal paper: entropy migliore di gini per molti dataset)
 
-NUM_ROUNDS = 50  # Numero di round di addestramento federato
+NUM_ROUNDS = 100  # Numero di round di addestramento federato
 
 # Variabili globali per tracking metriche
 all_federated_metrics = []  # Lista di dict, uno per round
 last_confusion_matrix = None
 
+"""
 def set_reproducibility_seeds():
-    """
-    Imposta tutti i semi per garantire riproducibilità.
-    Da chiamare all'inizio di ogni funzione critica.
-    """
+    
+    # Imposta tutti i semi per garantire riproducibilità.
+    # Da chiamare all'inizio di ogni funzione critica.
+    
     # Seed per NumPy
     np.random.seed(RANDOM_SEED)
     
@@ -83,6 +84,7 @@ def set_reproducibility_seeds():
     
     # Configurazioni per determinismo
     os.environ['PYTHONHASHSEED'] = str(RANDOM_SEED)
+"""
 
 def save_federated_metrics_report(metrics_list):
     """
@@ -420,7 +422,7 @@ def apply_preprocessing_pipeline(X_global):
     Applica la stessa pipeline di preprocessing dei client sui dati globali del server.
     CORREZIONE: Applica feature engineering nella stessa sequenza dei client.
     """
-    set_reproducibility_seeds()
+    # set_reproducibility_seeds()
 
     print(f"[Server] === PIPELINE PREPROCESSING SERVER OTTIMIZZATA ===")
     print(f"Feature engineering: {'ABILITATA' if ENABLE_FEATURE_ENGINEERING else 'DISABILITATA'}")
@@ -894,7 +896,7 @@ def get_smartgrid_random_forest_evaluate_fn():
         Carica un dataset globale di test per la valutazione del server.
         AGGIORNATO: Usa preprocessing ottimizzato identico ai client.
         """
-        set_reproducibility_seeds()
+        # set_reproducibility_seeds()
 
         print("=== CARICAMENTO DATASET GLOBALE TEST SERVER RF OTTIMIZZATO ===")
         
@@ -968,7 +970,7 @@ def get_smartgrid_random_forest_evaluate_fn():
         """
         Funzione di valutazione chiamata ad ogni round per Random Forest OTTIMIZZATO.
         """
-        set_reproducibility_seeds()
+        # set_reproducibility_seeds()
 
         print(f"\n=== VALUTAZIONE GLOBALE RANDOM FOREST OTTIMIZZATO - ROUND {server_round + 1} ===")
         
@@ -1281,12 +1283,42 @@ class SmartGridRandomForestFedAvgEnhanced(FedAvg):
     Strategia FedAvg OTTIMIZZATA per SmartGrid Random Forest.
     Implementa l'aggregazione degli alberi con diversity-aware selection.
     """
+
+    def configure_fit(self, server_round, parameters, client_manager):
+        """Configura i client per il training passando il numero di round."""
+        
+        # Chiama il metodo parent per ottenere la configurazione base
+        fit_configurations = super().configure_fit(server_round, parameters, client_manager)
+        
+        # Crea il config con il numero di round
+        config = {"server_round": server_round}
+        
+        # Il metodo parent restituisce una lista di tuple (ClientProxy, FitIns)
+        updated_configurations = []
+        
+        for client_proxy, fit_ins in fit_configurations:
+            # Aggiorna il config del FitIns
+            updated_config = fit_ins.config.copy()
+            updated_config.update(config)
+            
+            # Crea un nuovo FitIns con il config aggiornato
+            from flwr.common import FitIns
+            updated_fit_ins = FitIns(
+                parameters=fit_ins.parameters,
+                config=updated_config
+            )
+            
+            updated_configurations.append((client_proxy, updated_fit_ins))
+            
+            print(f"[Server] Configurato client con round {server_round}")
+        
+        return updated_configurations
     
     def aggregate_fit(self, server_round, results, failures):
         """
         Aggrega gli alberi Random Forest dai client con selezione ENHANCED.
         """
-        set_reproducibility_seeds()
+        # set_reproducibility_seeds()
 
         print(f"\n=== AGGREGAZIONE RANDOM FOREST OTTIMIZZATO - ROUND {server_round} ===")
         print(f"Client partecipanti: {len(results)}")
@@ -1372,7 +1404,7 @@ class SmartGridRandomForestFedAvgEnhanced(FedAvg):
         """
         Aggrega i risultati della valutazione Random Forest OTTIMIZZATO.
         """
-        set_reproducibility_seeds()
+        # set_reproducibility_seeds()
 
         print(f"\n=== AGGREGAZIONE VALUTAZIONE RANDOM FOREST OTTIMIZZATO ROUND {server_round} ===")
         print(f"Client che hanno valutato: {len(results)}")
@@ -1527,7 +1559,7 @@ def main():
     """
     Funzione principale per avviare il server Random Forest federato SmartGrid OTTIMIZZATO.
     """
-    set_reproducibility_seeds()
+    # set_reproducibility_seeds()
 
     print("=" * 90)
     print("🌳🎯 SERVER FEDERATO SMARTGRID - RANDOM FOREST OTTIMIZZATO")

@@ -57,23 +57,23 @@ RF_CRITERION = 'entropy'  # Criterio di splitting (dal paper: entropy migliore d
 ENSEMBLE_METHOD = 'weighted_voting'  # 'simple_voting' o 'weighted_voting'
 TREE_SELECTION_METHOD = 'diversity_weighted'  # NUOVO: accuracy + diversity
 
-def set_reproducibility_seeds(preserve_client_diversity=False):
-    """
-    Imposta tutti i semi per garantire riproducibilità.
-    
-    Args:
-        preserve_client_diversity: Se True, non sovrascrive i semi già impostati
-                                  per mantenere la diversità tra client
-    """
+"""
+def set_reproducibility_seeds(preserve_client_diversity=False, round_number=0):
+
+    # Imposta semi diversificati per round e client.
+
     if not preserve_client_diversity:
-        # Seed globali per operazioni deterministiche
-        np.random.seed(RANDOM_SEED)
+        # SEED DIVERSIFICATO PER ROUND
+        round_seed = RANDOM_SEED + round_number * 1000
+        np.random.seed(round_seed)
         import random
-        random.seed(RANDOM_SEED)
-        os.environ['PYTHONHASHSEED'] = str(RANDOM_SEED)
+        random.seed(round_seed)
+        os.environ['PYTHONHASHSEED'] = str(round_seed)
+        # print(f"[Client {client_id}] Seed per round {round_number}: {round_seed}")
     else:
         # Solo PYTHONHASHSEED per evitare problemi di hash
         os.environ['PYTHONHASHSEED'] = str(RANDOM_SEED)
+"""
 
 def create_smartgrid_features(df, client_id):
     """
@@ -311,7 +311,7 @@ def load_client_smartgrid_data(client_id):
     AGGIORNATO: Include feature engineering per SmartGrid.
     """
     # Imposta semi per riproducibilità del preprocessing
-    set_reproducibility_seeds()
+    # set_reproducibility_seeds()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, "..", "data", "SmartGrid", f"data{client_id}.csv")
@@ -793,20 +793,50 @@ class SmartGridRandomForestClient(fl.client.NumPyClient):
         """
         global model, X_train, y_train, dataset_info
 
-        # ✅ PRESERVA diversità tra client
-        set_reproducibility_seeds(preserve_client_diversity=True)
-    
+        # ESTRAI IL NUMERO DI ROUND DAL CONFIG (con valore di default)
+        server_round = config.get("server_round", 0)
+        
+        print(f"[Client {client_id}] 🔍 DEBUG: Ricevuto round {server_round} dal server")
+        
+        # ✅ USA SEED DIVERSIFICATO PER ROUND (NUOVA LOGICA)
+        round_seed = RANDOM_SEED + server_round * 1000 + client_id
+        np.random.seed(round_seed)
+        import random
+        random.seed(round_seed)
+        os.environ['PYTHONHASHSEED'] = str(round_seed)
+        
+        print(f"[Client {client_id}] Round {server_round} - Seed diversificato: {round_seed}")
+
         print(f"[Client {client_id}] Round di addestramento Random Forest OTTIMIZZATO...")
-    
+
         # Imposta parametri se ricevuti dal server
         if parameters:
             self.set_parameters(parameters)
-    
+
         if len(X_train) == 0:
             print(f"[Client {client_id}] Nessun dato di training!")
             return [], 0, {}
-    
+
         try:
+            # ✅ RICREA IL MODELLO CON NUOVO SEED PER OGNI ROUND
+            client_random_state = round_seed  # Usa il seed diversificato per round
+            
+            model = RandomForestClassifier(
+                n_estimators=RF_N_ESTIMATORS,
+                criterion=RF_CRITERION,
+                max_depth=RF_MAX_DEPTH,
+                min_samples_split=RF_MIN_SAMPLES_SPLIT,
+                min_samples_leaf=RF_MIN_SAMPLES_LEAF,
+                max_features=RF_MAX_FEATURES,
+                bootstrap=RF_BOOTSTRAP,
+                random_state=client_random_state,  # ✅ NUOVO SEED PER OGNI ROUND
+                n_jobs=-1,
+                class_weight=RF_CLASS_WEIGHT,
+                oob_score=True
+            )
+            
+            print(f"[Client {client_id}] Modello ricreato con random_state={client_random_state}")
+
             # Verifica che i dati siano puliti
             if np.any(np.isinf(X_train)) or np.any(np.isnan(X_train)):
                 print(f"[Client {client_id}] ⚠️ Dati contengono inf/NaN, applico pulizia...")
@@ -824,18 +854,19 @@ class SmartGridRandomForestClient(fl.client.NumPyClient):
         
             print(f"[Client {client_id}] ✅ Random Forest OTTIMIZZATO addestrato con {len(model.estimators_)} alberi")
 
-            # DOPO l'addestramento, aggiungi:
+            # DEBUG POST-FIT
             print(f"[Client {client_id}] 🔍 DEBUG POST-FIT OTTIMIZZATO:")
             print(f"  - model type: {type(model)}")
-            print(f"  - has estimators_: {hasattr(model, 'estimators_')}")
-            if hasattr(model, 'estimators_'):
-                print(f"  - n_estimators: {len(model.estimators_)}")
-                print(f"  - first tree type: {type(model.estimators_[0]) if len(model.estimators_) > 0 else 'N/A'}")
-                print(f"  - random_state diversificato: {model.random_state}")
+            print(f"  - random_state utilizzato: {model.random_state}")
+            print(f"  - n_estimators: {len(model.estimators_)}")
+            
+            # ✅ VERIFICA CHE IL MODELLO SIA DIVERSO TRA ROUND
+            first_tree_feature_importances = model.estimators_[0].feature_importances_[:5]
+            print(f"  - Prime 5 feature importances del primo albero: {first_tree_feature_importances}")
         
             # Calcola metriche di training
             train_predictions = model.predict(X_train_clean)
-            train_prob = model.predict_proba(X_train_clean)[:, 1]  # Probabilità classe positiva
+            train_prob = model.predict_proba(X_train_clean)[:, 1]
         
             train_accuracy = accuracy_score(y_train, train_predictions)
             train_precision = precision_score(y_train, train_predictions, zero_division=0)
@@ -861,7 +892,7 @@ class SmartGridRandomForestClient(fl.client.NumPyClient):
             import traceback
             traceback.print_exc()
             return [], 0, {'error': f'training_failed: {str(e)}'}
-    
+
         # Metriche da inviare al server
         metrics = {
             # Metriche base
@@ -881,12 +912,14 @@ class SmartGridRandomForestClient(fl.client.NumPyClient):
             'client_id': int(dataset_info['client_id']),
             'train_samples': int(dataset_info['train_samples']),
             
-            # NUOVI: Info ottimizzazioni
+            # Info ottimizzazioni + NUOVO DEBUG
             'feature_engineering_enabled': bool(dataset_info.get('feature_engineering_enabled', False)),
             'enhanced_preprocessing': bool(ENABLE_SCALING and ENABLE_REMOVE_NEAR_CONSTANT_FEATURES),
             'random_state_diversified': int(model.random_state),
+            'round_number': int(server_round),  # ✅ PER VERIFICARE LA DIVERSIFICAZIONE
+            'seed_used': int(round_seed),       # ✅ NUOVO: per debug
         }
-    
+
         # Restituisce gli alberi del modello addestrato
         try:
             # Calcola accuracy reali + diversità per ogni albero usando validation set
@@ -908,7 +941,7 @@ class SmartGridRandomForestClient(fl.client.NumPyClient):
         global model, X_val, y_val
 
         # Imposta semi per riproducibilità della valutazione
-        set_reproducibility_seeds()
+        # set_reproducibility_seeds()
         
         # Imposta parametri se ricevuti dal server
         if parameters:
@@ -1010,7 +1043,7 @@ def main():
     global client_id, model, X_train, y_train, X_val, y_val, dataset_info
 
     # Imposta semi all'avvio del client
-    set_reproducibility_seeds()
+    # set_reproducibility_seeds()
     
     if len(sys.argv) != 2:
         print("Uso: python clientRF.py <client_id>")
@@ -1033,7 +1066,7 @@ def main():
         X_train, y_train, X_val, y_val, dataset_info = load_client_smartgrid_data(client_id)
         
         # Imposta semi all'avvio del client
-        set_reproducibility_seeds()
+        # set_reproducibility_seeds()
 
         # Crea il modello Random Forest ottimizzato
         model = create_random_forest_model(client_id)
