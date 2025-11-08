@@ -1,0 +1,43 @@
+================================================================================
+REPORT ATTACCHI DI INFERENZA
+Sistema Federated Random Forest SmartGrid
+================================================================================
+
+Timestamp: 2025-11-03T15:48:45.820347
+Sistema target: loaded_federated_random_forest
+Client di training: [1, 2, 3]
+Accuracy modello: 0.7820
+N. campioni: 15450
+N. features: 264
+
+RISULTATI ATTACCHI:
+----------------------------------------
+
+MEMBERSHIP INFERENCE:
+  Status: SUCCESSO ✅
+  Accuracy: 1.0000
+  Attack Advantage: 0.5000
+  AUC: 1.0000
+  Interpretazione: 🔴 ALTA VULNERABILITÀ - Il modello rivela significativamente la membership. Raccomandato Differential Privacy.
+
+ATTRIBUTE INFERENCE:
+  Status: SUCCESSO ✅
+  Success Rate: 1.0000
+  Average Advantage: 0.7820
+  Interpretazione: 🔴 ALTA VULNERABILITÀ - Attributi sensibili facilmente inferibili. Protezione insufficiente.
+
+MODEL INVERSION:
+  Status: SUCCESSO ✅
+  Average Confidence: 0.4825
+  Max Confidence: 0.7060
+  Interpretazione: 🟡 MEDIA VULNERABILITÀ - Alcune informazioni sulle classi estraibili. Protezione parziale.
+
+RECONSTRUCTION:
+  Status: SUCCESSO ✅
+  Success Rate: 1.0000
+  Average Quality: 0.9955
+  Interpretazione: 🔴 ALTA VULNERABILITÀ - Campioni training facilmente ricostruibili. Grave leak privacy.
+
+VULNERABILITÀ COMPLESSIVA: 74.7%
+ATTACCHI RIUSCITI: 4/4
+RISK ASSESSMENT: 🔴 ALTO RISCHIO

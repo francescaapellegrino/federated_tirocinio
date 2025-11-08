@@ -1045,6 +1045,7 @@ def main():
     # Imposta semi all'avvio del client
     # set_reproducibility_seeds()
     
+    
     if len(sys.argv) != 2:
         print("Uso: python clientRF.py <client_id>")
         print("Esempio: python clientRF.py 1")
@@ -1052,12 +1053,22 @@ def main():
     
     try:
         client_id = int(sys.argv[1])
-        if client_id < 1 or client_id > 13:
+        if client_id == 1 or client_id == 13:
             raise ValueError("⚠️ Client ID deve essere tra 1 e 13")
     except ValueError as e:
         print(f"❌ Errore: Client ID non valido. {e}")
         sys.exit(1)
     
+    """
+    try:
+        client_id = int(sys.argv[1])
+        if client_id < 1 or client_id > 13:
+            raise ValueError("⚠️ Client ID deve essere tra 1 e 13")
+    except ValueError as e:
+        print(f"❌ Errore: Client ID non valido. {e}")
+        sys.exit(1)
+    """
+        
     print(f"=== AVVIO CLIENT RANDOM FOREST OTTIMIZZATO {client_id} ===")
     
     try:

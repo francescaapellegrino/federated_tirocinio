@@ -21,6 +21,8 @@ from scipy.spatial.distance import cosine
 from scipy import stats
 warnings.filterwarnings('ignore')
 
+SAVE_MODEL_PATH = "models/federated_rf_final.pkl"
+
 # CONFIGURAZIONE SEMI PER RIPRODUCIBILITÀ
 RANDOM_SEED = 42
 
@@ -903,7 +905,7 @@ def get_smartgrid_random_forest_evaluate_fn():
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
         # Usa client 14-15 come dataset di test
-        test_clients = [14, 15]
+        test_clients = [1, 13]
         df_list = []
 
         for client_id in test_clients:
@@ -1283,9 +1285,18 @@ class SmartGridRandomForestFedAvgEnhanced(FedAvg):
     Strategia FedAvg OTTIMIZZATA per SmartGrid Random Forest.
     Implementa l'aggregazione degli alberi con diversity-aware selection.
     """
-
+    
+    def __init__(self, *args, **kwargs):
+        """Inizializza la strategia e prepara per salvare il modello finale."""
+        super().__init__(*args, **kwargs)
+        self.last_global_model = None  # Mantiene riferimento all'ultimo modello
+        self.current_round = 0
+    
     def configure_fit(self, server_round, parameters, client_manager):
         """Configura i client per il training passando il numero di round."""
+        
+        # Aggiorna il round corrente
+        self.current_round = server_round
         
         # Chiama il metodo parent per ottenere la configurazione base
         fit_configurations = super().configure_fit(server_round, parameters, client_manager)
@@ -1317,6 +1328,7 @@ class SmartGridRandomForestFedAvgEnhanced(FedAvg):
     def aggregate_fit(self, server_round, results, failures):
         """
         Aggrega gli alberi Random Forest dai client con selezione ENHANCED.
+        AGGIORNATO: Salva automaticamente il modello all'ultimo round.
         """
         # set_reproducibility_seeds()
 
@@ -1380,6 +1392,26 @@ class SmartGridRandomForestFedAvgEnhanced(FedAvg):
             # Crea il Random Forest globale OTTIMIZZATO
             global_rf = create_global_random_forest_enhanced(selected_trees)
             
+            # ✅ SALVA IL MODELLO SE È L'ULTIMO ROUND
+            if server_round == NUM_ROUNDS:
+                print(f"\n🎯 ULTIMO ROUND ({server_round}/{NUM_ROUNDS}) - SALVATAGGIO MODELLO FINALE...")
+                
+                # Aggiungi timestamp al nome del file
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"federated_rf_final_{timestamp}.pkl"
+                
+                saved_path = save_final_model(global_rf, filename)
+                
+                if saved_path:
+                    print(f"✅ Modello finale salvato in: {saved_path}")
+                    print(f"🛡️ Puoi ora testare gli attacchi con:")
+                    print(f"   python run_attacks_on_saved_model.py {saved_path}")
+                else:
+                    print(f"⚠️ Salvataggio modello fallito")
+            
+            # Salva riferimento per uso successivo
+            self.last_global_model = global_rf
+            
             # Serializza il modello per l'invio ai client
             serialized_model = serialize_global_model(global_rf)
             
@@ -1404,8 +1436,9 @@ class SmartGridRandomForestFedAvgEnhanced(FedAvg):
         """
         Aggrega i risultati della valutazione Random Forest OTTIMIZZATO.
         """
-        # set_reproducibility_seeds()
-
+        # ... (resto del codice come prima)
+        # (non modificare questo metodo)
+        
         print(f"\n=== AGGREGAZIONE VALUTAZIONE RANDOM FOREST OTTIMIZZATO ROUND {server_round} ===")
         print(f"Client che hanno valutato: {len(results)}")
         
@@ -1438,6 +1471,7 @@ class SmartGridRandomForestFedAvgEnhanced(FedAvg):
             return None
         
         return aggregated_result
+
 
 def deserialize_trees_from_client_enhanced(parameters):
     """
@@ -1651,6 +1685,42 @@ def main():
         import traceback
         traceback.print_exc()
         sys.exit(1)
+
+def save_final_model(model, filename="federated_rf_final.pkl"):
+    """
+    Salva il modello federato finale.
+    
+    Args:
+        model: RandomForestClassifier da salvare
+        filename: Nome del file (default: federated_rf_final.pkl)
+        
+    Returns:
+        str: Path completo del file salvato
+    """
+    models_dir = "models"
+    os.makedirs(models_dir, exist_ok=True)
+    filepath = os.path.join(models_dir, filename)
+    
+    try:
+        with open(filepath, 'wb') as f:
+            pickle.dump(model, f, protocol=pickle.HIGHEST_PROTOCOL)
+        
+        print(f"\n{'='*80}")
+        print(f"💾 MODELLO FEDERATO SALVATO CON SUCCESSO")
+        print(f"{'='*80}")
+        print(f"📁 Path: {filepath}")
+        print(f"📊 N. alberi: {len(model.estimators_) if hasattr(model, 'estimators_') else 'N/A'}")
+        print(f"🎯 Puoi ora usare questo modello per test degli attacchi con:")
+        print(f"   python run_attacks_on_saved_model.py {filepath}")
+        print(f"{'='*80}\n")
+        
+        return filepath
+        
+    except Exception as e:
+        print(f"❌ Errore durante salvataggio modello: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
 
 if __name__ == "__main__":
     main()

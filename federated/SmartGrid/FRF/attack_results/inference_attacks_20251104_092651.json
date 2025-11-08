@@ -1,0 +1,176 @@
+{
+  "evaluation_id": "saved_model_attack_20251103_154845",
+  "timestamp": "2025-11-03T15:48:45.820347",
+  "model_path": "models/federated_rf_final_20251103_120416.pkl",
+  "target_system": "loaded_federated_random_forest",
+  "training_info": {
+    "training_clients": [
+      1,
+      2,
+      3
+    ],
+    "n_samples": 15450,
+    "n_features": 264,
+    "accuracy": 0.782,
+    "attack_ratio": 0.7250485436893204,
+    "model_source": "loaded_from_pkl",
+    "model_path": "models/federated_rf_final_20251103_120416.pkl"
+  },
+  "model_performance": {
+    "members": {
+      "accuracy": 0.782,
+      "precision": 0.798728813559322,
+      "recall": 0.9641943734015346,
+      "f1_score": 0.8736964078794901,
+      "n_samples": 500
+    },
+    "nonmembers": {
+      "accuracy": 0.748,
+      "precision": 0.7702127659574468,
+      "recall": 0.9526315789473684,
+      "f1_score": 0.851764705882353,
+      "n_samples": 500
+    }
+  },
+  "attack_data_info": {
+    "member_clients": [
+      1,
+      2,
+      3
+    ],
+    "nonmember_clients": [
+      14,
+      15
+    ],
+    "n_features": 264
+  },
+  "attacks": {
+    "membership_inference": {
+      "attack_type": "membership_inference",
+      "success": true,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "auc": 1.0,
+      "attack_advantage": 0.5,
+      "baseline_accuracy": 0.5,
+      "test_samples": 1000,
+      "art_used": true,
+      "interpretation": "\ud83d\udd34 ALTA VULNERABILIT\u00c0 - Il modello rivela significativamente la membership. Raccomandato Differential Privacy."
+    },
+    "attribute_inference": {
+      "attack_type": "attribute_inference",
+      "success": true,
+      "attributes_tested": 3,
+      "successful_attributes": 3,
+      "success_rate": 1.0,
+      "average_accuracy": 0.9820000000000001,
+      "average_advantage": 0.782,
+      "per_attribute_results": {
+        "0": {
+          "accuracy": 0.997,
+          "baseline": 0.2,
+          "advantage": 0.7969999999999999,
+          "success": true,
+          "n_classes": 5
+        },
+        "1": {
+          "accuracy": 0.954,
+          "baseline": 0.2,
+          "advantage": 0.754,
+          "success": true,
+          "n_classes": 5
+        },
+        "2": {
+          "accuracy": 0.995,
+          "baseline": 0.2,
+          "advantage": 0.7949999999999999,
+          "success": true,
+          "n_classes": 5
+        }
+      },
+      "interpretation": "\ud83d\udd34 ALTA VULNERABILIT\u00c0 - Attributi sensibili facilmente inferibili. Protezione insufficiente."
+    },
+    "model_inversion": {
+      "attack_type": "model_inversion",
+      "success": true,
+      "classes_inverted": 2,
+      "average_confidence": 0.48253225251824333,
+      "max_confidence": 0.7060101207325378,
+      "average_similarity": 1.0,
+      "per_class_results": {
+        "0": {
+          "best_confidence": 0.2590543843039489,
+          "similarity_to_mean": 1.0,
+          "class_name": "Natural"
+        },
+        "1": {
+          "best_confidence": 0.7060101207325378,
+          "similarity_to_mean": 1.0,
+          "class_name": "Attack"
+        }
+      },
+      "interpretation": "\ud83d\udfe1 MEDIA VULNERABILIT\u00c0 - Alcune informazioni sulle classi estraibili. Protezione parziale."
+    },
+    "reconstruction": {
+      "attack_type": "reconstruction",
+      "success": true,
+      "targets_attempted": 5,
+      "successful_reconstructions": 5,
+      "success_rate": 1.0,
+      "average_quality": 0.9954932687983108,
+      "individual_results": [
+        {
+          "target_index": 0,
+          "reconstruction_quality": 0.9973595888576168,
+          "euclidean_distance": 29249.67760524567,
+          "normalized_distance": 0.002640411142383175,
+          "success": "True"
+        },
+        {
+          "target_index": 1,
+          "reconstruction_quality": 0.9959703620061582,
+          "euclidean_distance": 44639.11331601961,
+          "normalized_distance": 0.00402963799384186,
+          "success": "True"
+        },
+        {
+          "target_index": 2,
+          "reconstruction_quality": 0.9966210327593282,
+          "euclidean_distance": 37431.179122783105,
+          "normalized_distance": 0.00337896724067181,
+          "success": "True"
+        },
+        {
+          "target_index": 3,
+          "reconstruction_quality": 0.9926495569440298,
+          "euclidean_distance": 81425.9893816359,
+          "normalized_distance": 0.0073504430559702145,
+          "success": "True"
+        },
+        {
+          "target_index": 4,
+          "reconstruction_quality": 0.994865803424421,
+          "euclidean_distance": 56875.079864304265,
+          "normalized_distance": 0.005134196575578995,
+          "success": "True"
+        }
+      ],
+      "interpretation": "\ud83d\udd34 ALTA VULNERABILIT\u00c0 - Campioni training facilmente ricostruibili. Grave leak privacy."
+    }
+  },
+  "summary": {
+    "total_attacks": 4,
+    "successful_attacks": 4,
+    "success_rate": 1.0,
+    "successful_attack_types": [
+      "membership_inference",
+      "attribute_inference",
+      "model_inversion",
+      "reconstruction"
+    ],
+    "overall_vulnerability_score": 74.70025301831345,
+    "risk_assessment": "\ud83d\udd34 ALTO RISCHIO"
+  }
+}
