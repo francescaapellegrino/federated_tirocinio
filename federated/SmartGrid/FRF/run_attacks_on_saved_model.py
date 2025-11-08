@@ -26,7 +26,7 @@ warnings.filterwarnings('ignore')
 
 # Importa il framework degli attacchi esistente
 from inference_attacks_integration import FederatedInferenceAttacker
-from clientRFtmp import load_client_smartgrid_data
+from clientRFtmp_privacy import load_client_smartgrid_data
 
 def load_saved_model(model_path):
     """

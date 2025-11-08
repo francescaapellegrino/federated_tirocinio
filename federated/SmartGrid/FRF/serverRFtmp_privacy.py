@@ -23,19 +23,19 @@ warnings.filterwarnings('ignore')
 
 # ============== CONFIGURAZIONE PRIVACY MECHANISMS (SERVER) ==============
 # DEVE ESSERE IDENTICA AL CLIENT per compatibilità
-PRIVACY_MODE = 'combined'  # Opzioni: 'baseline', 'regularized', 'dp', 'combined'
+PRIVACY_MODE = 'baseline'  # Opzioni: 'baseline', 'regularized', 'dp', 'combined'
 
 # Parametri Differential Privacy
-DP_EPSILON = 0.5
+DP_EPSILON = 5.0
 DP_DELTA = 1e-5
 DP_NOISE_MULTIPLIER = 1.1
 DP_L2_NORM_CLIP = 1.0
 
 # Parametri Model Regularization
-REG_N_ESTIMATORS = 30
-REG_MAX_DEPTH = 3
-REG_MIN_SAMPLES_SPLIT = 20
-REG_MIN_SAMPLES_LEAF = 50
+REG_N_ESTIMATORS = 80         # ✅ Aumentato da 50 (troppo pochi)
+REG_MAX_DEPTH = 10             # ✅ Aumentato da 5 (troppo shallow)
+REG_MIN_SAMPLES_SPLIT = 10    # ✅ Aumentato da 30
+REG_MIN_SAMPLES_LEAF = 8     # ✅ Ridotto da 20 (troppo restrittivo)
 
 # Abilita/disabilita meccanismi
 ENABLE_DP = PRIVACY_MODE in ['dp', 'combined']
@@ -59,7 +59,7 @@ ENABLE_IMPUTATION = True              # Imputazione mediana
 ENABLE_SCALING = False                 # ABILITATO: StandardScaler (mean=0, std=1) 
 ENABLE_REMOVE_NEAR_CONSTANT_FEATURES = False  # ABILITATO: Rimozione feature quasi-costanti
 ENABLE_PCA = False                    # PCA per riduzione dimensionalità
-ENABLE_FEATURE_ENGINEERING = True    # NUOVO: Feature engineering per SmartGrid
+ENABLE_FEATURE_ENGINEERING = False    # NUOVO: Feature engineering per SmartGrid
 
 if ENABLE_PCA:
     ENABLE_IMPUTATION = True # Per eseguire la PCA non si possono avere NaN
