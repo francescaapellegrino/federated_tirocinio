@@ -930,8 +930,8 @@ def get_smartgrid_random_forest_evaluate_fn():
         
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
-        # Usa client 14-15 come dataset di test
-        test_clients = [14, 15]
+        # Usa client 1-13 come dataset di test
+        test_clients = [1, 13]
         df_list = []
 
         for client_id in test_clients:

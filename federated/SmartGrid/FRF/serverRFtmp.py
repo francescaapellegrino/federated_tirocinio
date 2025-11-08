@@ -904,7 +904,7 @@ def get_smartgrid_random_forest_evaluate_fn():
         
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
-        # Usa client 14-15 come dataset di test
+        # Usa client 1-13 come dataset di test
         test_clients = [1, 13]
         df_list = []
 
@@ -1602,7 +1602,7 @@ def main():
     print(f"  - Rounds: {NUM_ROUNDS}")
     print(f"  - Client minimi: 2")
     print(f"  - Strategia: FedAvg OTTIMIZZATA per Random Forest")
-    print(f"  - Valutazione: Dataset globale (client 14-15)")
+    print(f"  - Valutazione: Dataset globale (client 1-13)")
     print(f"  - Aggregazione alberi: {TREE_AGGREGATION_STRATEGY} (diversity-aware)")
     print(f"  - Selezione alberi: {TREE_SELECTION_METHOD} (accuracy + diversity)")
     print(f"  - Max alberi globali: {MAX_TREES_GLOBAL}")
@@ -1653,7 +1653,7 @@ def main():
     print("  ...")
     print("  python clientRF.py 13")
     print("")
-    print("Client 14-15 riservati per valutazione globale")
+    print("Client 1-13 riservati per valutazione globale")
     print("Training inizierà quando almeno 2 client saranno connessi.")
     print("🎯 Le ottimizzazioni includeranno:")
     print("  - Feature engineering per SmartGrid")
